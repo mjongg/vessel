@@ -1,6 +1,7 @@
+import {oauthAvailability} from '../../../lib/server/oauth';
 import {getAppUser,supabaseEnabled,supabaseRequest,setting,sameOrigin} from '../../../lib/server/supabase';
 const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
-export async function GET(){try{const user=await getAppUser();return reply({mode:supabaseEnabled()?'supabase':'demo',signedIn:!!user,email:user?.email||'',aiEnabled:setting('VESSEL_AI_ENABLED')==='true'&&!!setting('OPENAI_API_KEY')&&!!setting('OPENAI_MODEL')});}catch{return reply({error:'Unable to connect to your account.'},503)}}
+export async function GET(){try{const user=await getAppUser();return reply({mode:supabaseEnabled()?'supabase':'demo',signedIn:!!user,email:user?.email||'',providers:await oauthAvailability(),aiEnabled:setting('VESSEL_AI_ENABLED')==='true'&&!!setting('OPENAI_API_KEY')&&!!setting('OPENAI_MODEL')});}catch{return reply({error:'Unable to connect to your account.'},503)}}
 export async function POST(request:Request){
  if(!sameOrigin(request))return reply({error:'Invalid origin.'},403);
  if(!supabaseEnabled())return reply({error:'Supabase sign-in has not been configured.'},503);

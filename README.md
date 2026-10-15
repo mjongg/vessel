@@ -52,3 +52,7 @@ With the **local demo** running, `python3 tests/api-check.py` checks authenticat
 Managed profiles are within one account; cross-account caregiver sharing is not implemented. No diagnosis, voice entry, doctor booking, automated vaccination schedule, DICOM viewer or full offline reopening. Nearby directory requests may fail; Google Maps fallback remains available. Drafts survive closing a form, not reloading a tab. Profile JSON export excludes attachment bytes and is not a full backup.
 
 Database backups and uploaded-file backups are separate. A restore drill and production access tests are release requirements. See the launch-readiness document for outstanding work and evidence; a successful build is not a production-readiness claim.
+
+## Account setup and logo studies
+
+See [account and provider setup](research/account-setup.md) for the invited-user onboarding flow and Google/Apple activation requirements. The local `/sign-in` page shows provider availability honestly; `/brand` contains three downloadable wordmark concepts.
