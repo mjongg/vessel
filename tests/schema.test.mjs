@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import {readFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+const source=await readFile(new URL('../app/extraction-schema.ts',import.meta.url),'utf8');
+let code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+code=code.replace("from 'zod'",`from '${import.meta.resolve('zod')}'`).replace("from './health-data'",`from '${new URL('../app/health-data.ts',import.meta.url).href}'`);
+const {extractionSchema}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const valid={category:'Laboratory',title:'CBC',date:'2026-10-15',facility:'Test clinic',patientName:'Fictional patient',summary:'Three printed test results.',warnings:[],sourceQuotes:['Hemoglobin 12.8 g/dL'],labs:[{name:'Hemoglobin',value:'12.8',unit:'g/dL',low:'12',high:'16'}]};
+test('AI draft accepts literal values and preserves units',()=>assert.deepEqual(extractionSchema.parse(valid),valid));
+test('AI draft rejects impossible dates and invented record types',()=>{assert.equal(extractionSchema.safeParse({...valid,date:'2026-02-30'}).success,false);assert.equal(extractionSchema.safeParse({...valid,category:'Diagnosis'}).success,false)});
+test('AI draft rejects malformed or reversed reference ranges',()=>{for(const low of ['normal','20'])assert.equal(extractionSchema.safeParse({...valid,labs:[{...valid.labs[0],low}]}).success,false)});
+test('AI draft allows unknown dates and qualitative results without inferred ranges',()=>assert.equal(extractionSchema.safeParse({...valid,date:'',labs:[{name:'Test',value:'Negative',unit:'',low:'',high:''}]}).success,true));
+test('AI draft rejects unrecognized action fields and excessive text',()=>{assert.equal(extractionSchema.safeParse({...valid,prescribe:'drug'}).success,false);assert.equal(extractionSchema.safeParse({...valid,summary:'x'.repeat(4001)}).success,false)});
