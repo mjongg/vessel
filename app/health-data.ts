@@ -6,7 +6,8 @@ export type Medicine={id:string;name:string;dose:string;frequency:string;start:s
 export type HistoryItem={id:string;kind:'Allergy'|'Condition'|'Surgery'|'Hospitalization'|'Family history';title:string;details:string;date:string;facility:string;source:string};
 export type Reading={id:string;type:'Blood pressure'|'Glucose'|'Temperature'|'Pulse'|'Oxygen saturation'|'Symptom';value:string;unit:string;date:string;note:string;author:string;corrections?:{at:string;value:string;unit:string;date:string;note:string;type:string;reason:string;author:string}[]};
 export type Vaccine={id:string;name:string;date:string;dose:string;facility:string;due:string;notes:string};
-export type Profile={id:string;name:string;dob:string;relationship:string;role:string;monitoring:boolean;history:HistoryItem[];medicines:Medicine[];records:RecordItem[];readings:Reading[];vaccines:Vaccine[]};
+export type DoctorContact={id:string;name:string;specialty:string;secretary:string;phone:string;address:string;hours:string};
+export type Profile={contacts?:DoctorContact[];id:string;name:string;dob:string;relationship:string;role:string;monitoring:boolean;history:HistoryItem[];medicines:Medicine[];records:RecordItem[];readings:Reading[];vaccines:Vaccine[]};
 export type State={profiles:Profile[]};
 export function dateText(s:string){if(!s)return 'Date not recorded';const d=new Date(s.length===10?s+'T12:00:00':s);return Number.isNaN(d.getTime())?s:d.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric',timeZone:'Asia/Manila'});}
 export function initials(s:string){return s.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();}
