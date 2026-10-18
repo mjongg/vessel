@@ -44,5 +44,6 @@ for item in items:
  (root/'supabase/email-templates'/f'{item[0]}.html').write_text(render(item));subjects[item[0]]=item[1]
 (root/'supabase/email-templates/subjects.json').write_text(json.dumps(subjects,indent=2,ensure_ascii=False)+'\n')
 preview=render(items[1]).replace('{{ .ConfirmationURL }}','#preview-only').replace('{{ .Token }}','123456').replace('{{ .SiteURL }}','#preview-only')
+preview=preview.replace('<table role="presentation" width="100%"', '<div style="padding:16px;text-align:center;background:#252643;color:white;font:14px Arial">EMAIL DESIGN PREVIEW · Sample button and code only. <a style="color:#e4d9ff" href="https://vessel-blond-three.vercel.app/sign-in">Open the real Vessel sign-in page</a></div><table role="presentation" width="100%"',1)
 (root/'design/email-preview.html').write_text(preview)
 print(f'Generated {len(items)} email templates and a preview.')
