@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Your Vessel sign-in link</title></head>
+<body style="margin:0;padding:0;background:#f4f1f8;color:#252643;font-family:Arial,Helvetica,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">Use the button below to securely return to your records.</div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f4f1f8"><tr><td align="center" style="padding:36px 16px">
+<table role="presentation" width="560" cellspacing="0" cellpadding="0" style="width:100%;max-width:560px">
+<tr><td style="padding:0 0 24px"><table role="presentation" cellspacing="0" cellpadding="0"><tr><td><img src="https://vessel-blond-three.vercel.app/brand/icon-192.png" width="44" height="44" alt="" style="display:block;border:0;border-radius:10px"></td><td style="padding-left:10px;font-size:30px;font-weight:700;letter-spacing:-1px;color:#252643">vessel</td></tr></table></td></tr>
+<tr><td bgcolor="#ffffff" style="border:1px solid #e4ddec;border-top:4px solid #8b70bb;border-radius:18px;padding:36px 28px">
+<p style="margin:0 0 16px;font-size:11px;font-weight:700;letter-spacing:2px;color:#705391">YOUR VESSEL ACCOUNT</p>
+<h1 style="margin:0 0 18px;font-size:28px;line-height:1.25;letter-spacing:-0.6px;color:#252643">Sign in to Vessel</h1>
+<p style="margin:0 0 28px;font-size:16px;line-height:1.7;color:#534d62">Use the button below to securely return to your records.</p>
+<table role="presentation" cellspacing="0" cellpadding="0"><tr><td bgcolor="#6545a4" style="border-radius:12px"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:16px 26px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none">Sign in to Vessel</a></td></tr></table><p style="margin:24px 0 8px;color:#625972;font-size:14px">Or enter this code in Vessel:</p><p style="margin:0;font-size:26px;letter-spacing:5px;font-weight:700;color:#382957">{{ .Token }}</p>
+<p style="margin:28px 0 0;padding:18px;background:#f6f3fa;border-radius:10px;font-size:14px;line-height:1.65;color:#534d62">Open this link in the browser where you requested it, within 10 minutes. The link works once.</p>
+<p style="font-size:12px;line-height:1.6;color:#625972;word-break:break-all">Button not working? Copy this address into your browser:<br><a href="{{ .ConfirmationURL }}" style="color:#6545a4">{{ .ConfirmationURL }}</a></p>
+</td></tr><tr><td style="padding:24px 8px;font-size:12px;line-height:1.8;color:#70677f">Vessel · Personal &amp; family health records<br>This account email does not include medical information.<br>Please do not reply to this automated message.</td></tr>
+</table></td></tr></table></body></html>

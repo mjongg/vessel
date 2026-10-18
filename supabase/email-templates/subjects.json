@@ -1,0 +1,15 @@
+{
+  "invite": "You’re invited to Vessel",
+  "magic-link": "Your Vessel sign-in link",
+  "confirmation": "Confirm your Vessel email",
+  "email-change": "Confirm your new Vessel email",
+  "recovery": "Reset your Vessel password",
+  "reauthentication": "Your Vessel verification code",
+  "password-changed": "Your password changed | Vessel",
+  "email-changed": "Your email changed | Vessel",
+  "phone-changed": "Your phone number changed | Vessel",
+  "identity-linked": "A sign-in method was added | Vessel",
+  "identity-unlinked": "A sign-in method was removed | Vessel",
+  "mfa-added": "A verification method was added | Vessel",
+  "mfa-removed": "A verification method was removed | Vessel"
+}
