@@ -1,7 +1,7 @@
 # Deploy Vessel to Vercel
 
 ## Configuration
-The repository root is the `tala` checkout, so Vercel's Root Directory is `.` (not `tala`). Import `mjongg/vessel`, choose Next.js, and retain the build settings in `vercel.json`:
+The repository root is the `vessel` checkout, so Vercel's Root Directory is `.`. Import `mjongg/vessel`, choose Next.js, and retain the build settings in `vercel.json`:
 - Install: `npm ci`
 - Build: `npm run build:vercel`
 - Output: Next.js default (do not set `dist`)
