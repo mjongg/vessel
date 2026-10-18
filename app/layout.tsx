@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import {ShareSetup} from "./share-setup";
 
 export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
   title: "Vessel — Your health record",
   description: "Your medical history, ready for your next check-up. Private working prototype with fictional records.",
   other: {
@@ -20,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"><ShareSetup/>{children}</body>
     </html>
   );
 }

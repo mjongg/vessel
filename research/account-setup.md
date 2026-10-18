@@ -6,7 +6,7 @@
 - `/api/auth/oauth`: same-origin POST starts a Google or Apple PKCE flow.
 - `/api/auth/callback`: matches the browser-bound flow, exchanges the authorization code, verifies membership in `pilot_members`, then sets HttpOnly session cookies. Uninvited users do not receive a Vessel session.
 - First-time users with an empty record complete a personal profile (name and optional birth date) before the dashboard. Family → Add managed profile creates a separate record within that account, not another person's login.
-- `/brand`: three downloadable SVG wordmark studies. These do not replace the current app logo.
+- `/brand`: selected chart-and-container identity with downloadable logo and symbol assets.
 
 ## Activation remains required
 

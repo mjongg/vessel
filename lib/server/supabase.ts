@@ -1,8 +1,8 @@
-import {env} from 'cloudflare:workers';
+import {env,isCloudflareRuntime} from '@/lib/server/runtime';
 import {headers} from 'next/headers';
 import {getChatGPTUser} from '../../app/chatgpt-auth';
 export function setting(name:string):string{return (env as unknown as Record<string,string>)[name]||process.env[name]||'';}
-export const supabaseEnabled=()=>setting('VESSEL_BACKEND')==='supabase';
+export const supabaseEnabled=()=>!isCloudflareRuntime||setting('VESSEL_BACKEND')==='supabase';
 export async function supabaseRequest(path:string,token?:string,init:RequestInit={}){
  const url=setting('SUPABASE_URL'),key=setting('SUPABASE_PUBLISHABLE_KEY');
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(url)||!key)throw new Error('Supabase is not configured.');

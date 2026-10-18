@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import {readFile} from 'node:fs/promises';
+import {seedState} from '../app/health-data.ts';
+let code=ts.transpileModule(await readFile(new URL('../app/health-schema.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+code=code.replace("from 'zod'",`from '${import.meta.resolve('zod')}'`).replace("from './health-data'",`from '${new URL('../app/health-data.ts',import.meta.url).href}'`);
+const {stateInput}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+test('vaccine card references and lot numbers survive server validation',()=>{const state=seedState();Object.assign(state.profiles[0].vaccines[0],{lotNumber:'LOT-001',fileId:'file-001',fileName:'card.pdf'});const saved=stateInput.parse({state,revision:0}).state.profiles[0].vaccines[0];assert.equal(saved.lotNumber,'LOT-001');assert.equal(saved.fileId,'file-001');assert.equal(saved.fileName,'card.pdf')});
+test('older vaccination entries remain valid without attachments',()=>assert.equal(stateInput.safeParse({state:seedState(),revision:0}).success,true));
+test('oversized lot numbers are rejected',()=>{const state=seedState();state.profiles[0].vaccines[0].lotNumber='X'.repeat(301);assert.equal(stateInput.safeParse({state,revision:0}).success,false)});

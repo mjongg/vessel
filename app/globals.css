@@ -70,3 +70,44 @@ body{background:#f8f8fb;color:#24243b;font-family:'Avenir Next',Avenir,'Segoe UI
 .selected-brand-stage .vessel-logo{width:min(100%,480px)}
 .brand-downloads{display:flex;gap:16px;flex-wrap:wrap}
 @media(max-width:600px){.center-brand .vessel-logo{width:124px}.selected-brand-stage{padding:56px 24px}.signin-brand{width:170px}}
+
+/* Read-first home hierarchy; DOM order also matches keyboard/mobile order. */
+.home-health{margin-bottom:24px}
+.home-priorities{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
+.home-priorities .home-monitoring{background:#eeebf8}
+.home-priorities .privacy-note{grid-column:1/-1}
+@media(min-width:1151px){
+ .home-priorities{grid-template-columns:minmax(0,1fr) 330px}
+ .home-entry{grid-column:1;grid-row:1}.home-monitoring{grid-column:2;grid-row:1 / span 2}
+ .home-recent{grid-column:1;grid-row:2}.home-visit{grid-column:1;grid-row:3}
+ .home-followup{grid-column:2;grid-row:3}.home-priorities .care-mini{grid-column:1/-1}
+ .home-health .summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* Balanced default: soft surfaces, readable labels, and visible boundaries. */
+:root{--muted-foreground:#595268;--vessel-muted:#595268;--vessel-border:#cbc4d8;--border:#cbc4d8;--input:#91859f}
+body{color:#28243b}
+.muted,.record-row p,.record-date,.profile-strip p,.summary-grid span:last-child,
+.quick-card>span:last-of-type,.contact-card dt,.care-mini p,.privacy-note,
+.save-ribbon,.topbar-context,.sidebar-heading,.page-footer,.demo-tag,
+.brand-intro p,.account-intro p,.signin-card p{color:#595268}
+.summary-grid .label,.field>span,.hero-kicker,.record-hero .hero-kicker{color:#564966}
+.summary-grid .label{font-size:.75rem;font-weight:600;letter-spacing:.04em}
+.summary-grid span:last-child,.quick-card>span:last-of-type,.record-row p,
+.record-date,.care-mini p,.profile-strip p{font-size:.8125rem}
+.summary-grid strong.allergy{color:#85445f}
+.card,.quick-card:nth-child(n),.contact-card,.care-place{border:1px solid #d7d0e2;box-shadow:none}
+.record-row{border:1px solid #ded7e7!important}
+.record-shortcuts>button{border-color:#d8cfe3}
+.record-shortcuts>button>span,.icon-tile,.quick-card .icon-tile{color:#665080}
+.record-tabs button{color:#594b6b;border:1px solid #d5cbdf;font-weight:600;font-size:.875rem}
+.record-tabs button[data-state=active]{color:#fff;border-color:#292a46}
+.outline{border-color:#a99bbd;color:#49385e}
+.field input,.field textarea,.form-select,.search-box,.global-search .search-box{border:1px solid #91859f}
+input::placeholder,textarea::placeholder{color:#6b6178;opacity:1}
+.mobile-nav button{color:#62566f}.mobile-nav button.active{color:#fff}
+.mobile-nav span{font-size:.75rem}.text-btn{color:#594271}
+.visit-banner p{color:#e0dfed}.visit-banner .white-btn{border-color:#8d8ba5}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #7053a0;outline-offset:3px}
+.high-contrast .card,.high-contrast .quick-card:nth-child(n),.high-contrast .contact-card{border-color:#756591}
+.high-contrast .summary-grid .label,.high-contrast .field>span{color:#342742}
+@media(max-width:767px){.home-health{margin-bottom:20px}.home-priorities{gap:20px}.quick-card strong{font-size:.875rem}.record-tabs button{font-size:.8125rem}.quick-card>span:last-of-type{font-size:.75rem}.record-row .record-date{font-size:.75rem}}
