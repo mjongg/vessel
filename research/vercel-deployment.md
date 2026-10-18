@@ -28,3 +28,10 @@ The current server-proxied upload flow accepts a maximum of 4 MB per file with a
 Confirm HTTPS deployment, email login, invite-only access, save/reload, file upload/download, sign-out, expired sessions and isolation between two accounts. Verify backup/restore before using this as the only copy of patient records. Native Share-to-Vessel requires installation and device testing on a supported browser. A successful build alone does not establish launch readiness.
 
 Sources: https://vercel.com/docs/frameworks/full-stack/nextjs ; https://vercel.com/docs/git ; https://vercel.com/docs/functions/limitations
+
+## Connection status — 18 October 2026
+The Vercel create-project API reported success for `vessel` (`prj_D1Dl0ubvMbbBDt0DodcoqJJQoz8E`) under `mjonggs-projects` (`team_2caqefiGhgf7stlBm8JBv1Rx`). A subsequent project lookup with that explicit team returned HTTP 403 scope access denied. The Git link and settings therefore remain unverified; no deployment was created. Local project-link metadata is stored in ignored `.vercel/project.json` so this project can be reused after access is corrected.
+
+Git HTTPS push still has no local credentials; the GitHub connector's tree-write request returned HTTP 403 Resource not accessible by integration. No source was pushed. Authenticate Git for `mjongg/vessel` or grant the GitHub installation repository write access. Reauthorize Vercel for the intended team before resuming. Do not create another project merely because lookup is blocked.
+
+Both Next.js and Cloudflare builds passed. All 34 unit tests passed. The locally running Next.js production build served the home page/manifest and rejected anonymous and forged preview-identity headers on health, file and storage routes. This does not verify live Supabase auth/storage or native share-sheet behavior.
