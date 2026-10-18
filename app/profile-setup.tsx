@@ -1,10 +1,10 @@
+
 'use client';
 import {VesselLogo} from './vessel-logo';
-import {useState} from 'react';
-import {UserRound,ArrowRight,ShieldCheck} from 'lucide-react';
-import {Field} from './health-forms';
+import {ProfileEditor} from './profile-editor';
+import {DraftContext,clearDraft} from './drafts';
 import type {Profile} from './health-data';
 export function ProfileSetup({profile,onSave}:{profile:Profile;onSave:(p:Profile)=>Promise<void>}){
- const[name,setName]=useState(''),[dob,setDob]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
- return <main className="signin-page"><div className="signin-brand"><VesselLogo/></div><section className="card signin-card profile-setup"><span className="icon-tile"><UserRound/></span><span className="eyebrow">YOUR PROFILE</span><h1>Let’s start with you</h1><p>These details identify your personal record. You can add family profiles afterwards.</p><form className="entry-form" onSubmit={async e=>{e.preventDefault();if(busy)return;setError('');setBusy(true);try{if(!name.trim())throw new Error('Enter your name.');if(dob>new Date().toISOString().slice(0,10))throw new Error('Date of birth cannot be in the future.');await onSave({...profile,name:name.trim(),dob,relationship:'You',role:'Owner'})}catch(e){setError(e instanceof Error?e.message:'Unable to save. Try again.')}finally{setBusy(false)}}}><Field label="Your full name" autoComplete="name" required maxLength={100} value={name} disabled={busy} onChange={e=>setName(e.target.value)}/><Field label="Date of birth (optional)" autoComplete="bday" type="date" value={dob} disabled={busy} onChange={e=>setDob(e.target.value)}/>{error&&<p className="form-error" role="alert">{error}</p>}<button className="primary full" disabled={busy}>{busy?'Creating profile…':'Create my profile'}<ArrowRight size={18}/></button></form><p className="signin-privacy"><ShieldCheck size={17}/>Your profile is saved to your signed-in account.</p></section></main>
+ const key='onboarding:'+profile.id;
+ return <main className="signin-page"><div className="signin-brand"><VesselLogo/></div><section className="card onboarding-card"><div className="onboarding-intro"><span className="eyebrow">WELCOME TO VESSEL</span><h1>Set up your health profile</h1><p>A few details now make your records easier to use at your next appointment.</p></div><DraftContext.Provider value={key}><ProfileEditor key={profile.id} existing={profile} onboarding onSave={async p=>{await onSave(p);clearDraft(key)}}/></DraftContext.Provider></section></main>
 }
