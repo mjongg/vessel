@@ -1,0 +1,15 @@
+import {test,beforeEach} from 'node:test';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import {readFile} from 'node:fs/promises';
+const service={calls:[],allowed:true};globalThis.__vesselEmailTest=service;
+const stub=`const s=globalThis.__vesselEmailTest;export const setting=n=>n==='VESSEL_APP_URL'?'https://vessel.example':'';export const supabaseEnabled=()=>true;export const sameOrigin=r=>r.headers.get('origin')===new URL(r.url).origin;export const getAppUser=async()=>null;export const oauthAvailability=async()=>({google:false,apple:false});export const supabaseRequest=async(path,token,init)=>{s.calls.push({path,token,init});return Response.json(path.startsWith('/rest/')?(s.allowed?[{user_id:'person'}]:[]):{access_token:'valid.jwt.token',refresh_token:'refresh-token',expires_in:3600,user:{id:'person'}})};`;
+const stubURL='data:text/javascript;base64,'+Buffer.from(stub).toString('base64');
+let code=ts.transpileModule(await readFile(new URL('../app/api/session/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+code=code.replace(/from '\.\.\/\.\.\/\.\.\/lib\/server\/(supabase|oauth)'/g,`from '${stubURL}'`).replace("from '../../../lib/server/oauth-flow'",`from '${new URL('../lib/server/oauth-flow.ts',import.meta.url).href}'`);
+const route=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const post=(body,origin='https://vessel.example')=>new Request('https://vessel.example/api/session',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
+beforeEach(()=>{service.calls=[];service.allowed=true});
+test('email links are browser-bound with PKCE and never create uninvited users',async()=>{const r=await route.POST(post({action:'send',email:'test@example.com'}));assert.equal(r.status,200);const call=service.calls[0],body=JSON.parse(call.init.body);assert.equal(body.create_user,false);assert.equal(body.code_challenge_method,'s256');assert.match(body.code_challenge,/^[A-Za-z0-9_-]{43}$/);assert.match(decodeURIComponent(call.path),/redirect_to=https:\/\/vessel.example\/api\/auth\/callback\?flow=/);assert.match(r.headers.get('set-cookie'),/HttpOnly; SameSite=Lax; Path=\/api\/auth/);assert.doesNotMatch(JSON.stringify(await r.json()),/code_verifier/)});
+test('foreign-origin email requests never send email',async()=>{assert.equal((await route.POST(post({action:'send',email:'test@example.com'},'https://evil.example'))).status,403);assert.equal(service.calls.length,0)});
+test('valid email code for non-member is revoked without issuing session cookies',async()=>{service.allowed=false;const r=await route.POST(post({action:'verify',email:'test@example.com',code:'123456'}));assert.equal(r.status,403);assert.equal(r.headers.get('set-cookie'),null);assert.ok(service.calls.some(c=>c.path==='/auth/v1/logout?scope=local'))});

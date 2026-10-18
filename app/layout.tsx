@@ -5,7 +5,7 @@ import {ShareSetup} from "./share-setup";
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   title: "Vessel — Your health record",
-  description: "Your medical history, ready for your next check-up. Private working prototype with fictional records.",
+  description: "Your medical history, ready for your next check-up. Private personal and family health records.",
   other: {
     "codex-preview": "development",
   },
