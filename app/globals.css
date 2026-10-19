@@ -129,3 +129,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .setup-actions{display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #e5dfed;padding-top:22px}.setup-actions button{min-height:48px;min-width:110px}
 .setup-note{font-size:12px}.profile-wizard .form-disclosure>summary{min-height:48px;cursor:pointer}.profile-wizard .field input,.profile-wizard .field select{min-height:48px}
 @media(max-width:540px){.setup-progress small{display:none}.setup-progress>span{text-align:center}.setup-review dl>div{display:block}.setup-review dd{text-align:left;margin-top:4px}.setup-actions button{flex:1}.profile-wizard h2{font-size:24px}}
+
+/* Profile form readability */
+.profile-wizard header .muted{max-width:60ch;line-height:1.6}
+.profile-wizard .field>span{font-size:14px;font-weight:600;color:#40344f;line-height:1.5}
+.profile-wizard .field input,.profile-wizard .field select,.profile-wizard .field textarea{font-size:16px;border:1px solid #c9bfd8;border-radius:10px;background:#fff}
+.profile-wizard .field-hint{font-size:13px;line-height:1.5;color:#62576f;margin:-8px 0 0}
+.profile-wizard .form-disclosure{border:1px solid #ddd4e8;border-radius:12px;padding:14px 16px;background:#fcfaff}
+.profile-wizard .form-disclosure>summary{font-size:15px;font-weight:600;color:#40344f;line-height:1.5}
+.profile-wizard .form-disclosure>summary span{font-size:12px;font-weight:500;color:#665873}
+.profile-wizard .setup-actions .primary{white-space:normal;line-height:1.4}
+.profile-wizard .setup-progress small{font-size:12px}
+@media(max-width:540px){.profile-wizard .two-fields{grid-template-columns:1fr}.profile-wizard .setup-actions{flex-wrap:wrap}.profile-wizard .setup-actions .primary{flex:2;min-width:180px}}
+
+.profile-wizard h2:focus{outline:none}
