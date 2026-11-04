@@ -13,9 +13,9 @@ export async function getAppUser(){
  if(!supabaseEnabled())return getChatGPTUser();
  const token=await accessToken();if(!token)return null;
  const response=await supabaseRequest('/auth/v1/user',token);if(!response.ok)return null;
- const user=await response.json() as {id:string;email?:string};
+ const user=await response.json() as {id:string;email?:string;app_metadata?:{vessel_family_dashboard?:string}};
  const membership=await supabaseRequest('/rest/v1/pilot_members?select=user_id&user_id=eq.'+encodeURIComponent(user.id),token);
  if(!membership.ok||(await membership.json() as unknown[]).length!==1)return null;
- return {userId:user.id,email:user.email||'',displayName:user.email||'Account',fullName:null};
+ return {userId:user.id,email:user.email||'',displayName:user.email||'Account',fullName:null,familyDashboard:user.app_metadata?.vessel_family_dashboard==='admin'?'admin':'overview'};
 }
 export function sameOrigin(request:Request){return request.headers.get('origin')===new URL(request.url).origin;}
