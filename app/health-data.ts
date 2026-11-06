@@ -5,7 +5,10 @@ export type Stamp={addedBy?:string;addedById?:string;addedAt?:string;editedBy?:s
 export type Lab={name:string;value:string;unit:string;low:string;high:string};
 export type RecordItem=Stamp&{id:string;category:Category;title:string;date:string;facility:string;notes:string;fileId?:string;fileName?:string;labs:Lab[];reviewed:boolean;updatedAt?:string;versions?:{date:string;title:string;notes:string;snapshot?:string}[]};
 export type Medicine=Stamp&{id:string;name:string;dose:string;frequency:string;start:string;end:string;kind:'Maintenance'|'Antibiotic'|'Other';status:'Current'|'Completed'|'Stopped'|'Unconfirmed'};
-export type HistoryItem=Stamp&{id:string;kind:'Allergy'|'Condition'|'Surgery'|'Hospitalization'|'Family history';title:string;details:string;date:string;facility:string;source:string};
+export type HistoryItem=Stamp&{id:string;kind:'Allergy'|'Condition'|'Surgery'|'Hospitalization'|'Family history';title:string;details:string;date:string;facility:string;source:string;
+ // Optional structured choices from the tap-to-select forms. `details` is always rebuilt from these plus `note` (see composeHistory),
+ // so every screen that shows `title` and `details` stays correct without knowing about them.
+ category?:string;reactions?:string;severity?:string;status?:string;year?:string;relative?:string;note?:string};
 export type Reading=Stamp&{id:string;type:'Blood pressure'|'Glucose'|'Temperature'|'Pulse'|'Oxygen saturation'|'Symptom';value:string;unit:string;date:string;note:string;author:string;corrections?:{at:string;value:string;unit:string;date:string;note:string;type:string;reason:string;author:string}[]};
 export type Vaccine=Stamp&{lotNumber?:string;fileId?:string;fileName?:string;id:string;name:string;date:string;dose:string;facility:string;due:string;notes:string};
 export type DoctorContact={id:string;name:string;specialty:string;secretary:string;phone:string;address:string;hours:string};
