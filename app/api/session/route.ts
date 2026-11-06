@@ -1,4 +1,4 @@
-import {appOrigin,createFlow,flowCookie,validTokens,sessionCookies,clearFlow} from '../../../lib/server/oauth-flow';
+import {appOrigin,validTokens,sessionCookies,clearFlow} from '../../../lib/server/oauth-flow';
 import {oauthAvailability} from '../../../lib/server/oauth';
 import {getAppUser,supabaseEnabled,supabaseRequest,setting,sameOrigin} from '../../../lib/server/supabase';
 const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
@@ -7,19 +7,18 @@ export async function POST(request:Request){
  if(!sameOrigin(request))return reply({error:'Invalid origin.'},403);
  if(!supabaseEnabled())return reply({error:'Supabase sign-in has not been configured.'},503);
  try{
- const raw=await request.text();if(raw.length>2000)return reply({error:'Request too large.'},413);
- const {action,email,code}=JSON.parse(raw);let response:Response;
+ const raw=await request.text();if(raw.length>8000)return reply({error:'Request too large.'},413);
+ const {action,email,code,access_token,refresh_token,expires_in}=JSON.parse(raw);let response:Response;
  if(action==='send'){
   if(typeof email!=='string'||email.length>254||!/^\S+@\S+\.\S+$/.test(email))return reply({error:'Enter a valid email address.'},400);
   const origin=appOrigin(setting('VESSEL_APP_URL'));
   if(new URL(request.url).origin!==origin)return reply({error:'Please use the main Vessel website to sign in.'},403);
-  const flow=await createFlow(),callback=new URL('/api/auth/callback',origin);callback.searchParams.set('flow',flow.state);
-  response=await supabaseRequest('/auth/v1/otp?redirect_to='+encodeURIComponent(callback.href),undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,create_user:false,code_challenge:flow.challenge,code_challenge_method:'s256'})});
+  // Not browser-bound: family members open email on phones and in mail apps, not in the browser that asked for the link.
+  // The link lands on the Site URL with tokens in the URL fragment; the sign-in screen hands them to the "adopt" action below.
+  response=await supabaseRequest('/auth/v1/otp',undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,create_user:false})});
   if(response.status>=500)return reply({error:'Email delivery is temporarily unavailable. Please try again.'},503);
   if(response.status===429)return reply({error:'Too many attempts. Please wait before requesting another code.'},429);
-  const result=reply({message:'If this email has been invited, a sign-in email will arrive shortly. Open its link in this browser within 10 minutes. If it contains a code instead, enter it below.'});
-  for(const [name,value] of [['vessel-pkce',flow.verifier],['vessel-flow',flow.state]])result.headers.append('Set-Cookie',flowCookie(name,value,origin.startsWith('https:')));
-  return result;
+  return reply({message:'If this email has been invited, a sign-in email will arrive shortly. Open the newest link on any device. If it contains a code instead, enter it below.'});
  }
  if(action==='logout'){
   const token=request.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith('vessel-access='))?.slice(14);
@@ -30,6 +29,13 @@ export async function POST(request:Request){
   const token=request.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith('vessel-refresh='))?.slice(15);
   if(!token)return reply({error:'Please sign in again. Your open forms are kept.'},401);
   response=await supabaseRequest('/auth/v1/token?grant_type=refresh_token',undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refresh_token:token})});
+ }else if(action==='adopt'){
+  if(typeof access_token!=='string'||typeof refresh_token!=='string')return reply({error:'Sign-in link was incomplete. Request a new one.'},400);
+  // Tokens from a URL are never trusted as they stand: Supabase must confirm whose they are, and the pilot check below still applies.
+  const check=await supabaseRequest('/auth/v1/user',access_token);
+  if(!check.ok)return reply({error:'This sign-in link has expired. Request a new one.'},401);
+  const user=await check.json() as {id?:string};
+  response=Response.json({access_token,refresh_token,expires_in:Number(expires_in)||3600,user:{id:user.id}});
  }else if(action==='verify'){
   if(typeof email!=='string'||email.length>254||typeof code!=='string'||!/^\d{6,10}$/.test(code))return reply({error:'Enter the code from your email.'},400);
   response=await supabaseRequest('/auth/v1/verify',undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,token:code,type:'email'})});
