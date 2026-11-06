@@ -14,6 +14,11 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    // Images here are private blob URLs and a static brand SVG; next/image cannot optimize either.
+    files: ["app/**/*.tsx"],
+    rules: { "@next/next/no-img-element": "off" },
+  },
+  {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
     rules: {
       // These files are vendored verbatim from shadcn@4.17.0. Keep the

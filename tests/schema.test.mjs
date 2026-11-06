@@ -2,7 +2,6 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
 import {readFile} from 'node:fs/promises';
-import {pathToFileURL} from 'node:url';
 const source=await readFile(new URL('../app/extraction-schema.ts',import.meta.url),'utf8');
 let code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
 code=code.replace("from 'zod'",`from '${import.meta.resolve('zod')}'`).replace("from './health-data'",`from '${new URL('../app/health-data.ts',import.meta.url).href}'`);

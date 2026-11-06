@@ -1,11 +1,13 @@
 export const categories=['Laboratory','Imaging','Prescriptions','Consultations','Hospitalizations','Procedures','Pathology','Vaccinations','Other documents'] as const;
 export type Category=typeof categories[number];
+// Set by the server when a care-team member (not the account owner) adds or edits an entry.
+export type Stamp={addedBy?:string;addedById?:string;addedAt?:string;editedBy?:string;editedById?:string;editedAt?:string};
 export type Lab={name:string;value:string;unit:string;low:string;high:string};
-export type RecordItem={id:string;category:Category;title:string;date:string;facility:string;notes:string;fileId?:string;fileName?:string;labs:Lab[];reviewed:boolean;updatedAt?:string;versions?:{date:string;title:string;notes:string;snapshot?:string}[]};
-export type Medicine={id:string;name:string;dose:string;frequency:string;start:string;end:string;kind:'Maintenance'|'Antibiotic'|'Other';status:'Current'|'Completed'|'Stopped'|'Unconfirmed'};
-export type HistoryItem={id:string;kind:'Allergy'|'Condition'|'Surgery'|'Hospitalization'|'Family history';title:string;details:string;date:string;facility:string;source:string};
-export type Reading={id:string;type:'Blood pressure'|'Glucose'|'Temperature'|'Pulse'|'Oxygen saturation'|'Symptom';value:string;unit:string;date:string;note:string;author:string;corrections?:{at:string;value:string;unit:string;date:string;note:string;type:string;reason:string;author:string}[]};
-export type Vaccine={lotNumber?:string;fileId?:string;fileName?:string;id:string;name:string;date:string;dose:string;facility:string;due:string;notes:string};
+export type RecordItem=Stamp&{id:string;category:Category;title:string;date:string;facility:string;notes:string;fileId?:string;fileName?:string;labs:Lab[];reviewed:boolean;updatedAt?:string;versions?:{date:string;title:string;notes:string;snapshot?:string}[]};
+export type Medicine=Stamp&{id:string;name:string;dose:string;frequency:string;start:string;end:string;kind:'Maintenance'|'Antibiotic'|'Other';status:'Current'|'Completed'|'Stopped'|'Unconfirmed'};
+export type HistoryItem=Stamp&{id:string;kind:'Allergy'|'Condition'|'Surgery'|'Hospitalization'|'Family history';title:string;details:string;date:string;facility:string;source:string};
+export type Reading=Stamp&{id:string;type:'Blood pressure'|'Glucose'|'Temperature'|'Pulse'|'Oxygen saturation'|'Symptom';value:string;unit:string;date:string;note:string;author:string;corrections?:{at:string;value:string;unit:string;date:string;note:string;type:string;reason:string;author:string}[]};
+export type Vaccine=Stamp&{lotNumber?:string;fileId?:string;fileName?:string;id:string;name:string;date:string;dose:string;facility:string;due:string;notes:string};
 export type DoctorContact={id:string;name:string;specialty:string;secretary:string;phone:string;address:string;hours:string};
 export type ProfileDetails={preferredName:string;sex:string;bloodType:string;phone:string;email:string;address:string;emergencyName:string;emergencyRelationship:string;emergencyPhone:string;allergyStatus:"Unknown"|"None known"|"Listed";medicineStatus:"Unknown"|"None reported"|"Listed"};
 export type Profile={details?:ProfileDetails;onboardingCompletedAt?:string;contacts?:DoctorContact[];id:string;name:string;dob:string;relationship:string;role:string;monitoring:boolean;history:HistoryItem[];medicines:Medicine[];records:RecordItem[];readings:Reading[];vaccines:Vaccine[]};

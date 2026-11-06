@@ -9,6 +9,12 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
 const { d1, r2 } = hostingConfig;
+const nodeRuntime = fileURLToPath(
+  new URL("./lib/server/runtime", import.meta.url),
+);
+const cloudflareRuntime = fileURLToPath(
+  new URL("./lib/server/runtime-cloudflare.ts", import.meta.url),
+);
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
@@ -52,13 +58,23 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    resolve: {alias: {"@/lib/server/runtime": fileURLToPath(new URL("./lib/server/runtime-cloudflare.ts", import.meta.url))}},
     server: {
       host: "127.0.0.1",
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
     },
     plugins: [
+      // Swap in the Cloudflare runtime for the local preview. A plain resolve.alias never
+      // matches: the framework’s own "@" alias rewrites the import to an absolute path first,
+      // so match the resolved Node runtime file as well as the bare specifier.
+      {
+        name: "vessel-cloudflare-runtime",
+        enforce: "pre" as const,
+        resolveId(id: string) {
+          const bare = id.split("?")[0].replace(/\.ts$/, "");
+          if (bare === "@/lib/server/runtime" || bare === nodeRuntime) return cloudflareRuntime;
+        },
+      },
       vinext(),
       sites({ mockAuth: !managedLinux }),
       cloudflare({

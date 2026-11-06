@@ -1,7 +1,7 @@
 import {limitedBody} from '../../../lib/server/request-body';
 import {loadSupabaseRecords,saveSupabaseRecords} from '../../../lib/server/supabase-records';
 import {env} from '@/lib/server/runtime';
-import {getAppUser as getChatGPTUser,supabaseEnabled,supabaseRequest,accessToken} from '../../../lib/server/supabase';
+import {getAppUser as getChatGPTUser,supabaseEnabled} from '../../../lib/server/supabase';
 import {emptyState} from '../../health-data';
 import {stateInput} from '../../health-schema';
 const respond=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
