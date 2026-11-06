@@ -1,4 +1,6 @@
-import type {HistoryItem} from './health-data';
+import type {HistoryItem,Profile} from './health-data';
+
+export const byName=(a:string,b:string)=>a.localeCompare(b);
 
 // Philippines first, then places family members commonly live or work, then alphabetical.
 export const countryCodes:[string,string][]=[
@@ -18,6 +20,12 @@ export const joinPhone=(code:string,number:string)=>number.trim()?code+' '+numbe
 // Several choices are stored in one field separated by "; " (some option names contain commas).
 export const splitList=(value?:string)=>(value||'').split('; ').filter(Boolean);
 export const toggleInList=(value:string|undefined,item:string)=>{const list=splitList(value);return (list.includes(item)?list.filter(x=>x!==item):[...list,item]).join('; ')};
+
+/** True only when someone answered "none" and no entry has been added since, so a later entry can never leave a stale "none" on show. */
+export function reportedNone(profile:Profile,kind:HistoryItem['kind']){
+ if(profile.history.some(h=>h.kind===kind))return false;
+ return kind==='Allergy'?profile.details?.allergyStatus==='None known':splitList(profile.details?.noneReported).includes(kind);
+}
 
 /** The free-text note for an entry. Entries saved before structured fields existed keep their whole description as the note. */
 export const historyNote=(h:HistoryItem)=>h.note??h.details;

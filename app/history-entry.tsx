@@ -1,49 +1,67 @@
 'use client';
 import type {HistoryItem} from './health-data';
-import {allergyGroups,allergyReactions,allergySeverities,conditionGroups,conditionStatuses,familyIllnessGroups,hospitalizationGroups,relatives,surgeryGroups,type Group} from './pick-lists';
-import {composeHistory,historyNote,splitList,toggleInList} from './entry-helpers';
-import {Chips,GroupedChips} from './pickers';
+import {allergyGroups,allergyReactions,allergySeverities,conditionGroups,conditionScreen,conditionStatuses,familyIllnessGroups,familyScreen,hospitalizationGroups,relatives,surgeryGroups,type Group} from './pick-lists';
+import {byName,composeHistory,historyNote,splitList,toggleInList} from './entry-helpers';
+import {Chips,ChoiceField,NoneButton,OptionSelect} from './pickers';
 
 type Kind=HistoryItem['kind'];
 export const historyKinds:Kind[]=['Allergy','Condition','Surgery','Hospitalization','Family history'];
 export const historyTitles:Record<Kind,string>={Allergy:'Allergies',Condition:'Conditions & Past Illnesses',Surgery:'Surgeries',Hospitalization:'Hospitalizations','Family history':'Family History'};
 const groupsFor:Record<Kind,Group[]>={Allergy:allergyGroups,Condition:conditionGroups,Surgery:surgeryGroups,Hospitalization:hospitalizationGroups,'Family history':familyIllnessGroups};
 export const historyGroups=(kind:Kind)=>groupsFor[kind];
-const nouns:Record<Kind,string>={Allergy:'allergies',Condition:'conditions',Surgery:'surgeries',Hospitalization:'reasons for admission','Family history':'illnesses'};
+const noneLabels:Record<Kind,string>={Allergy:'No known allergies',Condition:'No known conditions',Surgery:'No previous surgeries',Hospitalization:'No previous hospitalizations','Family history':'No known family illnesses'};
+const addLabels:Record<Kind,string>={Allergy:'Has allergies',Condition:'Has conditions or past illnesses',Surgery:'Has had surgery',Hospitalization:'Has been hospitalized','Family history':'Has family illnesses'};
+const allergyTitle=(group:string)=>group==='Environmental'?'Environmental allergy':group+' allergy';
+const screens:Partial<Record<Kind,string[]>>={Condition:[...conditionScreen].sort(byName),'Family history':[...familyScreen].sort(byName)};
+const reactions=[...allergyReactions].sort(byName),family=[...relatives].sort(byName);
 
 const Labeled=({label,children}:{label:string;children:React.ReactNode})=><div className="field"><span>{label}</span>{children}</div>;
-const yearInput=(entry:HistoryItem,set:(patch:Partial<HistoryItem>)=>void,label:string)=><label className="field"><span>{label}</span><input inputMode="numeric" maxLength={4} placeholder="e.g. 2019" value={entry.year||''} onChange={e=>set({year:e.target.value.replace(/\D/g,'').slice(0,4)})}/></label>;
+// What a clinician asks next for the two conditions tracked most closely.
+const noteLabel=(h:HistoryItem)=>h.kind==='Family history'?'Note (for example, age at diagnosis)':h.kind==='Allergy'?'Note (for example, when it happened or what treated it)':h.title==='Hypertension'?'Note (for example, usual and highest blood pressure)':/^Type [12] diabetes/.test(h.title)?'Note (for example, usual blood sugar, latest HbA1c and its date)':'Note';
 
-/** The follow-up questions for one history entry, answered by tapping wherever possible. */
+/** The follow-up questions for one history entry. */
 export function HistoryEntryFields({entry,onChange}:{entry:HistoryItem;onChange:(entry:HistoryItem)=>void}){
  const set=(patch:Partial<HistoryItem>)=>onChange(composeHistory({...entry,...patch}));
  const k=entry.kind;
+ const year=(label:string)=><label className="field"><span>{label}</span><input inputMode="numeric" maxLength={4} placeholder="e.g. 2019" value={entry.year||''} onChange={e=>set({year:e.target.value.replace(/\D/g,'').slice(0,4)})}/></label>;
  return <>
-  {k==='Allergy'&&<><Labeled label="What happens? Tap all that apply"><Chips label="Reaction" options={allergyReactions} selected={splitList(entry.reactions)} onToggle={v=>set({reactions:toggleInList(entry.reactions,v)})}/></Labeled>
-   <Labeled label="How severe was it?"><Chips label="Severity" options={allergySeverities} selected={entry.severity?[entry.severity]:[]} onToggle={v=>set({severity:entry.severity===v?'':v})}/></Labeled></>}
-  {k==='Condition'&&<><Labeled label="Status"><Chips label="Status" options={conditionStatuses} selected={entry.status?[entry.status]:[]} onToggle={v=>set({status:entry.status===v?'':v})}/></Labeled>{yearInput(entry,set,'Year diagnosed (if known)')}</>}
-  {k==='Family history'&&<Labeled label="Which relatives? Tap all that apply"><Chips label="Relatives" options={[...new Set([...relatives,...splitList(entry.relative)])]} selected={splitList(entry.relative)} onToggle={v=>set({relative:toggleInList(entry.relative,v)})}/></Labeled>}
-  {(k==='Surgery'||k==='Hospitalization')&&<div className="two-fields">{yearInput(entry,set,'Year (if known)')}<label className="field"><span>Hospital / Clinic</span><input maxLength={300} value={entry.facility} onChange={e=>set({facility:e.target.value})}/></label></div>}
-  <details className="form-disclosure entry-more"><summary>Add a note or exact date</summary>
-   <label className="field"><span>{k==='Family history'?'Note (for example, age at diagnosis)':k==='Allergy'?'Note (for example, when it happened or what treated it)':'Note'}</span><textarea rows={2} maxLength={11000} value={historyNote(entry)} onChange={e=>set({note:e.target.value})}/></label>
-   {k!=='Family history'&&<label className="field"><span>Exact date (if known)</span><input type="date" value={entry.date} onChange={e=>set({date:e.target.value})}/></label>}
-  </details>
+  {k==='Allergy'&&<><Labeled label="What happens? Tap all that apply"><Chips label="Reaction" options={reactions} selected={splitList(entry.reactions)} onToggle={v=>set({reactions:toggleInList(entry.reactions,v)})}/></Labeled>
+   <ChoiceField label="How severe was it?" options={allergySeverities} value={entry.severity||''} onChange={v=>set({severity:v})}/></>}
+  {k==='Condition'&&<div className="two-fields"><ChoiceField label="Status" options={conditionStatuses} value={entry.status||''} onChange={v=>set({status:v})}/>{year('Year diagnosed (if known)')}</div>}
+  {k==='Family history'&&<Labeled label="Which relatives? Tap all that apply"><Chips label="Relatives" options={[...new Set([...family,...splitList(entry.relative)])]} selected={splitList(entry.relative)} onToggle={v=>set({relative:toggleInList(entry.relative,v)})}/></Labeled>}
+  {(k==='Surgery'||k==='Hospitalization')&&<div className="two-fields">{year('Year (if known)')}<label className="field"><span>Hospital / Clinic</span><input maxLength={300} value={entry.facility} onChange={e=>set({facility:e.target.value})}/></label></div>}
+  <label className="field"><span>{noteLabel(entry)}</span><textarea rows={2} maxLength={11000} value={historyNote(entry)} onChange={e=>set({note:e.target.value})}/></label>
+  {k!=='Family history'&&<label className="field"><span>Exact date (if known)</span><input type="date" value={entry.date} onChange={e=>set({date:e.target.value})}/></label>}
  </>;
 }
 
-/** Tap common options to add entries of one kind, then answer the follow-ups for each. */
-export function HistoryPicker({kind,entries,source,onChange}:{kind:Kind;entries:HistoryItem[];source:string;onChange:(entries:HistoryItem[])=>void}){
+/** An added entry: one line until the person chooses to add details. */
+function EntryCard({entry,onChange,onRemove}:{entry:HistoryItem;onChange:(entry:HistoryItem)=>void;onRemove:()=>void}){
+ return <section className="entry-card"><div className="picked-head"><strong>{entry.title}</strong><button type="button" className="text-btn" onClick={onRemove}>Remove</button></div>
+  <details className="entry-more"><summary>{entry.details||'Add details (optional)'}</summary><HistoryEntryFields entry={entry} onChange={onChange}/></details></section>;
+}
+
+/** One history section: a one-tap "none" answer, or open it to choose entries. Left alone, the answer stays unknown. */
+export function HistorySection({kind,entries,source,none,onNone,onChange}:{kind:Kind;entries:HistoryItem[];source:string;none:boolean;onNone:(value:boolean)=>void;onChange:(entries:HistoryItem[])=>void}){
  const mine=entries.filter(h=>h.kind===kind);
- const matches=(h:HistoryItem,group:string,title:string)=>h.kind===kind&&h.title===title&&(kind!=='Allergy'||!h.category||h.category===group);
- const add=(group:string,title:string)=>onChange([...entries,composeHistory({id:crypto.randomUUID(),kind,title,details:'',date:'',facility:'',source,note:'',...(kind==='Allergy'?{category:group}:{})})]);
- const toggle=(group:string,title:string)=>entries.some(h=>matches(h,group,title))?onChange(entries.filter(h=>!matches(h,group,title))):add(group,title);
- const picker=(groups:Group[],other:string)=><GroupedChips label={nouns[kind]} groups={groups} selected={(g,v)=>entries.some(h=>matches(h,g,v))} onToggle={toggle} onOther={v=>{if(!mine.some(h=>h.title.toLowerCase()===v.toLowerCase()))add(groups[0].group,v)}} otherLabel={other}/>;
- return <div className="history-picker">
-  {kind==='Allergy'
-   ?allergyGroups.map(g=><section key={g.group} className="allergy-kind"><h4>{g.group==='Drug'?'Drug Allergies':g.group==='Food'?'Food Allergies':'Environmental Allergies'}</h4>{picker([g],'Other '+g.group.toLowerCase()+' allergy')}</section>)
-   :picker(historyGroups(kind),'Not on the list? Type it here')}
-  {mine.length>0&&<div className="picked-entries"><h4>{mine.length===1?'1 added':mine.length+' added'} — add details if you know them</h4>
-   {mine.map(h=><section className="setup-entry" key={h.id}><div className="picked-head"><strong>{h.title}{h.kind==='Allergy'&&h.category?<span className="tag">{h.category}</span>:null}</strong><button type="button" className="text-btn" onClick={()=>onChange(entries.filter(x=>x.id!==h.id))}>Remove</button></div>
-    <HistoryEntryFields entry={h} onChange={next=>onChange(entries.map(x=>x.id===h.id?{...next,source}:x))}/></section>)}</div>}
- </div>;
+ const add=(group:string,title:string)=>{
+  if(mine.some(h=>h.title.toLowerCase()===title.toLowerCase()))return;
+  onChange([...entries,composeHistory({id:crypto.randomUUID(),kind,title,details:'',date:'',facility:'',source,note:'',...(kind==='Allergy'?{category:group}:{})})]);
+ };
+ const remove=(id:string)=>onChange(entries.filter(h=>h.id!==id));
+ const card=(h:HistoryItem)=><EntryCard key={h.id} entry={h} onRemove={()=>remove(h.id)} onChange={next=>onChange(entries.map(x=>x.id===h.id?{...next,source}:x))}/>;
+ const taken=(v:string)=>mine.some(h=>h.title===v);
+ const screen=screens[kind];
+ const known=new Set(allergyGroups.map(g=>g.group));
+ return <section className="history-card">
+  <h3>{historyTitles[kind]}{mine.length>0&&<span className="tag">{mine.length}</span>}</h3>
+  {!mine.length&&<NoneButton label={noneLabels[kind]} on={none} onChange={onNone}/>}
+  {!none&&<details className="form-disclosure" open={mine.length>0||undefined}><summary>{addLabels[kind]}</summary>
+   {kind==='Allergy'
+    ?<>{allergyGroups.map(g=><div key={g.group} className="allergy-kind"><OptionSelect label={allergyTitle(g.group)} groups={[g]} onPick={add} isTaken={taken} otherLabel={'Other '+g.group.toLowerCase()+' allergy'}/>{mine.filter(h=>h.category===g.group).map(card)}</div>)}{mine.filter(h=>!h.category||!known.has(h.category)).map(card)}</>
+    :<>{screen&&<div className="field"><span>Tap any that apply</span><Chips label={historyTitles[kind]} options={screen} selected={screen.filter(taken)} onToggle={v=>{const h=mine.find(x=>x.title===v);if(h)remove(h.id);else add('',v)}}/></div>}
+     <OptionSelect label={screen?'Something else?':'Choose from the list'} groups={historyGroups(kind)} onPick={add} isTaken={taken}/>
+     {mine.map(card)}</>}
+  </details>}
+ </section>;
 }

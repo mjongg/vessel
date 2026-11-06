@@ -2,21 +2,22 @@
 import {useEffect,useRef,useState} from 'react';
 import type {Profile,ProfileDetails,HistoryItem,Medicine} from './health-data';
 import {useDraftState} from './drafts';
-import {ChoiceField,GroupedChips,PhoneInput} from './pickers';
-import {HistoryPicker,historyKinds,historyTitles} from './history-entry';
-import {antibioticNames,emergencyRelationships,frequencies,medicineGroups,relationshipsToYou} from './pick-lists';
+import {Chips,ChoiceField,NoneButton,OptionSelect,PhoneInput} from './pickers';
+import {HistorySection,historyKinds,historyTitles} from './history-entry';
+import {byName,reportedNone,splitList,toggleInList} from './entry-helpers';
+import {alcoholOptions,antibioticNames,emergencyRelationships,frequencies,medicineGroups,medicineScreen,relationshipsToYou,smokingOptions} from './pick-lists';
 
 const defaults:ProfileDetails={preferredName:'',sex:'',bloodType:'',phone:'',email:'',address:'',emergencyName:'',emergencyRelationship:'',emergencyPhone:'',allergyStatus:'Unknown',medicineStatus:'Unknown'};
 const steps=['Personal Details','Contact & Emergency','Medical History','Medications','Review'];
 const hints=[
  'Your full name is required. Everything else can be added later.',
  'Add the best way to reach you and someone to contact in an emergency.',
- 'Open a section and tap what applies. You can add reactions, years and notes after tapping. Skip anything you are unsure of.',
- 'Tap the medicines taken now or recently. Leave any uncertain details blank.',
+ 'Answer each section with one tap, or open it to add entries. Skip anything you are unsure of.',
+ 'Add medicines taken now or recently. Copy the dose from the prescription or packaging; if unsure, leave it blank. Prescriptions and vaccine cards can be uploaded from Records after setup.',
  'Check your details before saving. Use Back to make a correction.',
 ];
 const autoComplete:Partial<Record<keyof ProfileDetails,string>>={preferredName:'nickname',email:'email',address:'street-address',emergencyName:'section-emergency name'};
-const reviewLabels:Record<string,string>={preferredName:'Preferred Name',sex:'Sex Assigned at Birth',bloodType:'Blood Type',phone:'Phone',email:'Contact Email',address:'Address',emergencyName:'Emergency Contact',emergencyRelationship:'Relationship',emergencyPhone:'Emergency Phone'};
+const reviewLabels:Record<string,string>={preferredName:'Preferred Name',sex:'Sex Assigned at Birth',bloodType:'Blood Type',phone:'Phone',email:'Contact Email',address:'Address',emergencyName:'Emergency Contact',emergencyRelationship:'Relationship',emergencyPhone:'Emergency Phone',smoking:'Smoking',alcohol:'Alcohol',occupation:'Work',lmp:'Last Menstrual Period'};
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila'}).format(new Date());
 const blankProfile=():Profile=>({id:crypto.randomUUID(),name:'',dob:'',relationship:'You',role:'Owner',monitoring:false,records:[],history:[],medicines:[],readings:[],vaccines:[],details:{...defaults}});
 
@@ -50,7 +51,8 @@ export function ProfileEditor({existing,onSave,onboarding=false}:{existing?:Prof
    // "Listed" is derived from the entries; an explicit "none" answer only stands while there are no entries.
    const allergyStatus=hasAllergies?'Listed':details.allergyStatus==='Listed'?'Unknown':details.allergyStatus;
    const medicineStatus=hasCurrentMeds?'Listed':details.medicineStatus==='Listed'?'Unknown':details.medicineStatus;
-   await onSave({...draft,name:draft.name.trim(),role:draft.relationship==='You'?'Owner':'Managed profile',details:{...details,phone:details.phone.trim(),emergencyPhone:details.emergencyPhone.trim(),allergyStatus,medicineStatus},onboardingCompletedAt:draft.onboardingCompletedAt||new Date().toISOString()});
+   const noneReported=splitList(details.noneReported).filter(k=>!draft.history.some(h=>h.kind===k)).join('; ');
+   await onSave({...draft,name:draft.name.trim(),role:draft.relationship==='You'?'Owner':'Managed profile',details:{...details,phone:details.phone.trim(),emergencyPhone:details.emergencyPhone.trim(),allergyStatus,medicineStatus,noneReported},onboardingCompletedAt:draft.onboardingCompletedAt||new Date().toISOString()});
   }catch(e){setError(e instanceof Error?e.message:'Could not save. Your entries are kept here.')}
   finally{setBusy(false)}
  }
@@ -73,30 +75,29 @@ export function ProfileEditor({existing,onSave,onboarding=false}:{existing?:Prof
   <h3>Emergency Contact</h3>
   <p className="muted">For reference only. Adding a contact does not grant them access or send a notification.</p>
   {text('Contact Name','emergencyName')}
-  <ChoiceField label="Relationship" options={emergencyRelationships} value={details.emergencyRelationship} onChange={v=>field('emergencyRelationship',v)} placeholder="Or type another relationship"/>
+  <ChoiceField label="Relationship" options={emergencyRelationships} value={details.emergencyRelationship} onChange={v=>field('emergencyRelationship',v)} placeholder="Type the relationship"/>
   <PhoneInput label="Contact Number" value={details.emergencyPhone} onChange={v=>field('emergencyPhone',v)}/>
  </>;
 
+ const setNone=(kind:HistoryItem['kind'],on:boolean)=>kind==='Allergy'?field('allergyStatus',on?'None known':'Unknown'):field('noneReported',toggleInList(details.noneReported,kind));
  const history=<>
-  {historyKinds.map(kind=>{const count=draft.history.filter(h=>h.kind===kind).length;return <details className="form-disclosure" key={kind}>
-   <summary>{historyTitles[kind]} <span>{kind==='Allergy'&&!count&&details.allergyStatus==='None known'?'None known':count===1?'1 entry':count+' entries'}</span></summary>
-   {kind==='Allergy'&&!count&&<label className="check-line"><input type="checkbox" checked={details.allergyStatus==='None known'} onChange={e=>field('allergyStatus',e.target.checked?'None known':'Unknown')}/>No known allergies. Leave unticked if you are not sure.</label>}
-   <HistoryPicker kind={kind} entries={draft.history} source={source} onChange={next=>setDraft(p=>({...p,history:next}))}/>
-  </details>})}
+  {historyKinds.map(kind=><HistorySection key={kind} kind={kind} entries={draft.history} source={source} none={reportedNone({...draft,details},kind)} onNone={on=>setNone(kind,on)} onChange={next=>setDraft(p=>({...p,history:next}))}/>)}
+  <section className="history-card"><h3>Lifestyle</h3>
+   <div className="two-fields"><ChoiceField label="Smoking" options={smokingOptions} value={details.smoking||''} onChange={v=>field('smoking',v)}/><ChoiceField label="Alcohol" options={alcoholOptions} value={details.alcohol||''} onChange={v=>field('alcohol',v)}/></div>
+   <div className="two-fields">{text('Work or Occupation','occupation')}{details.sex!=='Male'&&<label className="field"><span>Last Menstrual Period (if applicable)</span><input type="date" max={today()} value={details.lmp||''} onChange={e=>field('lmp',e.target.value)}/></label>}</div>
+  </section>
  </>;
 
  const medicines=<>
-  <p className="muted">Tap a medicine to add it, then copy the dose from the prescription or packaging. Do not guess a dose: leave it blank. You can upload prescriptions and vaccine cards from Records after setup.</p>
-  {!draft.medicines.length&&<label className="check-line"><input type="checkbox" checked={details.medicineStatus==='None reported'} onChange={e=>field('medicineStatus',e.target.checked?'None reported':'Unknown')}/>Not taking any medicines. Leave unticked if you are not sure.</label>}
-  <details className="form-disclosure" open={!draft.medicines.length}><summary>Common medicines <span>tap to add</span></summary>
-   <GroupedChips label="medicines" groups={medicineGroups} selected={(_,v)=>draft.medicines.some(m=>m.name===v)}
-    onToggle={(_,v)=>setDraft(p=>({...p,medicines:p.medicines.some(m=>m.name===v)?p.medicines.filter(m=>m.name!==v):[...p.medicines,newMedicine(v)]}))}
-    onOther={v=>setDraft(p=>({...p,medicines:[...p.medicines,newMedicine(v)]}))} otherLabel="Not on the list? Type the medicine name"/>
-  </details>
+  {!draft.medicines.length&&<NoneButton label="Not taking any medicines" on={details.medicineStatus==='None reported'} onChange={on=>field('medicineStatus',on?'None reported':'Unknown')}/>}
+  {(draft.medicines.length>0||details.medicineStatus!=='None reported')&&<>
+   <OptionSelect label="Add a medicine" groups={medicineGroups} isTaken={v=>draft.medicines.some(m=>m.name===v)} onPick={(_,v)=>setDraft(p=>({...p,medicines:[...p.medicines,newMedicine(v)]}))} otherLabel="Medicine name"/>
+   <div className="field"><span>Also taking?</span><Chips label="Also taking" options={[...medicineScreen].sort(byName)} selected={medicineScreen.filter(v=>draft.medicines.some(m=>m.name===v))} onToggle={v=>setDraft(p=>({...p,medicines:p.medicines.some(m=>m.name===v)?p.medicines.filter(m=>m.name!==v):[...p.medicines,newMedicine(v)]}))}/></div>
+  </>}
   {draft.medicines.map(m=><section className="setup-entry" key={m.id}>
    <div className="picked-head"><strong>{m.name||'New medication'}</strong><button type="button" className="text-btn" onClick={()=>setDraft(p=>({...p,medicines:p.medicines.filter(x=>x.id!==m.id)}))}>Remove</button></div>
    <div className="two-fields"><label className="field"><span>Medication Name</span><input required maxLength={300} value={m.name} onChange={e=>patchMedicine(m.id,{name:e.target.value})}/></label><label className="field"><span>Dose, as written (e.g. 50 mg)</span><input maxLength={300} value={m.dose} onChange={e=>patchMedicine(m.id,{dose:e.target.value})}/></label></div>
-   <ChoiceField label="How often, as prescribed" options={frequencies} value={m.frequency} onChange={v=>patchMedicine(m.id,{frequency:v})} placeholder="Or type the instructions"/>
+   <ChoiceField label="How often, as prescribed" options={frequencies} value={m.frequency} onChange={v=>patchMedicine(m.id,{frequency:v})} placeholder="Type the instructions"/>
    <div className="two-fields">
     <label className="field"><span>Type</span><select value={m.kind} onChange={e=>patchMedicine(m.id,{kind:e.target.value as Medicine['kind']})}>{['Maintenance','Antibiotic','Other'].map(v=><option key={v}>{v}</option>)}</select></label>
     <label className="field"><span>Status</span><select value={m.status} onChange={e=>patchMedicine(m.id,{status:e.target.value as Medicine['status']})}>{['Current','Completed','Stopped','Unconfirmed'].map(v=><option key={v}>{v}</option>)}</select></label>
@@ -110,7 +111,7 @@ export function ProfileEditor({existing,onSave,onboarding=false}:{existing?:Prof
    <dl>{Object.entries(details).filter(([k])=>k in reviewLabels).map(([k,v])=><div key={k}><dt>{reviewLabels[k]}</dt><dd>{v||'Not recorded'}</dd></div>)}</dl></div>
   <h3>Medical History · {draft.history.length} {draft.history.length===1?'entry':'entries'}</h3>
   {historyKinds.map(kind=>{const items=draft.history.filter((h:HistoryItem)=>h.kind===kind);return items.length?<div key={kind}><h4>{historyTitles[kind]}</h4>{items.map(h=><p key={h.id}><strong>{h.title}</strong>{h.details&&<><br/>{h.details}</>}{(h.date||h.facility)&&<><br/>{[h.date,h.facility].filter(Boolean).join(' · ')}</>}</p>)}</div>:null})}
-  {!hasAllergies&&<p>Allergies: {details.allergyStatus==='None known'?'None known':'Not recorded'} (self-reported)</p>}
+  {historyKinds.filter(k=>!draft.history.some(h=>h.kind===k)).map(k=><p key={k}>{historyTitles[k]}: {reportedNone({...draft,details},k)?'None reported':'Not recorded'}</p>)}
   <h3>Medications · {draft.medicines.length} {draft.medicines.length===1?'entry':'entries'}</h3>
   {draft.medicines.map(m=><p key={m.id}><strong>{m.name}</strong> · {m.dose||'Dose not recorded'} · {m.frequency||'Frequency not recorded'} · {m.status}</p>)}
   {!draft.medicines.length&&<p>Current medicines: {details.medicineStatus==='None reported'?'None reported':'Not recorded'}</p>}
@@ -128,4 +129,4 @@ export function ProfileEditor({existing,onSave,onboarding=false}:{existing?:Prof
 }
 
 // A tapped name fills in the name only. An antibiotic defaults to that type; dose, frequency and dates are never assumed.
-function newMedicine(name:string):Medicine{return {id:crypto.randomUUID(),name,dose:'',frequency:'',start:'',end:'',kind:antibioticNames.has(name)?'Antibiotic':'Maintenance',status:'Current'}}
+function newMedicine(name:string):Medicine{return {id:crypto.randomUUID(),name,dose:'',frequency:'',start:'',end:'',kind:antibioticNames.has(name)?'Antibiotic':medicineScreen.includes(name)?'Other':'Maintenance',status:'Current'}}

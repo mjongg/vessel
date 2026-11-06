@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {splitPhone,joinPhone,composeHistory,toggleInList,splitList,countryCodes} from '../app/entry-helpers.ts';
+import {splitPhone,joinPhone,composeHistory,toggleInList,splitList,countryCodes,reportedNone} from '../app/entry-helpers.ts';
 
 test('phone numbers keep their country code, and an empty number stores nothing',()=>{
  assert.deepEqual(splitPhone('+63 917 123 4567'),{code:'+63',number:'917 123 4567'});
@@ -32,4 +32,14 @@ test('an entry written before structured fields keeps its description as the not
  assert.equal(next.note,'Hives within an hour, treated at the ER');
  assert.equal(next.details,'Severity: Moderate · Hives within an hour, treated at the ER');
  assert.equal(composeHistory(next).details,next.details,'recomposing does not duplicate text');
+});
+test('a none answer is distinct from unanswered, and never survives a later entry',()=>{
+ const person={history:[],details:{allergyStatus:'Unknown'}};
+ assert.equal(reportedNone(person,'Allergy'),false,'unanswered is not none');
+ assert.equal(reportedNone(person,'Condition'),false);
+ assert.equal(reportedNone({...person,details:{allergyStatus:'None known'}},'Allergy'),true);
+ const none={...person,details:{allergyStatus:'Unknown',noneReported:'Condition; Surgery'}};
+ assert.equal(reportedNone(none,'Surgery'),true);
+ assert.equal(reportedNone(none,'Hospitalization'),false);
+ assert.equal(reportedNone({...none,history:[{id:'a',kind:'Condition',title:'Asthma'}]},'Condition'),false,'a later entry wins');
 });

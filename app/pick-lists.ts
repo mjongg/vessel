@@ -17,17 +17,23 @@ export const allergySeverities=['Mild','Moderate','Severe','Life-threatening','U
 
 export const conditionGroups:Group[]=[
  {group:'Heart & circulation',items:['Hypertension','Coronary artery disease','Previous heart attack','Heart failure','Atrial fibrillation / arrhythmia','Rheumatic heart disease','Stroke / TIA','Peripheral artery disease','Deep vein thrombosis / pulmonary embolism']},
- {group:'Diabetes, thyroid & metabolism',items:['Type 2 diabetes mellitus','Type 1 diabetes mellitus','Prediabetes','Gestational diabetes','Dyslipidemia / high cholesterol','Obesity','Hypothyroidism','Hyperthyroidism','Goiter / thyroid nodule','Gout / high uric acid','Polycystic ovary syndrome']},
- {group:'Lungs & airways',items:['Asthma','COPD','Pulmonary tuberculosis (treated)','Pulmonary tuberculosis (on treatment)','Pneumonia (past)','Obstructive sleep apnea','Allergic rhinitis']},
- {group:'Kidney & urinary',items:['Chronic kidney disease','On dialysis','Kidney stones','Recurrent urinary tract infection','Benign prostatic hyperplasia']},
- {group:'Digestive & liver',items:['GERD','Peptic ulcer disease','Gallstones','Fatty liver','Hepatitis B','Hepatitis C','Liver cirrhosis','Irritable bowel syndrome','Hemorrhoids']},
+ {group:'Diabetes, thyroid & metabolism',items:['Type 2 diabetes mellitus','Type 1 diabetes mellitus','Prediabetes','Gestational diabetes','Dyslipidemia / high cholesterol','Obesity','Thyroid disease','Hypothyroidism','Hyperthyroidism','Goiter / thyroid nodule','Gout / high uric acid','Polycystic ovary syndrome']},
+ {group:'Lungs & airways',items:['Asthma','COPD','Pulmonary tuberculosis','Pulmonary tuberculosis (treated)','Pulmonary tuberculosis (on treatment)','Pneumonia (past)','Obstructive sleep apnea','Allergic rhinitis']},
+ {group:'Kidney & urinary',items:['Kidney disease','Chronic kidney disease','On dialysis','Kidney stones','Recurrent urinary tract infection','Benign prostatic hyperplasia']},
+ {group:'Digestive & liver',items:['Liver disease','GERD','Peptic ulcer disease','Gallstones','Fatty liver','Hepatitis B','Hepatitis C','Liver cirrhosis','Irritable bowel syndrome','Hemorrhoids']},
  {group:'Brain & mental health',items:['Migraine','Epilepsy / seizure disorder','Dementia','Parkinson’s disease','Depression','Anxiety disorder','Bipolar disorder']},
  {group:'Blood & immune system',items:['Anemia','G6PD deficiency','Thalassemia','Bleeding disorder','HIV','Lupus (SLE)','Rheumatoid arthritis','Psoriasis']},
  {group:'Bones, joints, eyes & skin',items:['Osteoarthritis','Osteoporosis','Chronic low back pain','Glaucoma','Cataract','Eczema / atopic dermatitis']},
- {group:'Cancer',items:['Breast cancer','Colorectal cancer','Lung cancer','Liver cancer','Cervical cancer','Prostate cancer','Thyroid cancer','Nasopharyngeal cancer','Leukemia / lymphoma']},
+ {group:'Cancer',items:['Cancer','Breast cancer','Colorectal cancer','Lung cancer','Liver cancer','Cervical cancer','Prostate cancer','Thyroid cancer','Nasopharyngeal cancer','Leukemia / lymphoma']},
  {group:'Women’s health',items:['Endometriosis','Uterine fibroids (myoma)','Preeclampsia (past)']},
  {group:'Past infections',items:['Dengue (past)','COVID-19 (past)','Chickenpox (past)','Measles (past)','Typhoid fever (past)']},
 ];
+// The short screen asked first (the usual past medical and family history questions). Anything else comes from the full list.
+export const conditionScreen=['Hypertension','Type 2 diabetes mellitus','Previous heart attack','Stroke / TIA','Asthma','Pulmonary tuberculosis','Thyroid disease','Kidney disease','Liver disease','Cancer'];
+export const familyScreen=['Hypertension','Type 2 diabetes','Cancer','Stroke','Heart attack / coronary artery disease','Asthma','Hemophilia / bleeding disorder'];
+export const medicineScreen=['Herbal or traditional supplements','Pain relievers (NSAIDs) taken regularly'];
+export const smokingOptions=['Never smoked','Former smoker','Smokes now','Vapes'];
+export const alcoholOptions=['Does not drink','Occasional','Regular'];
 export const conditionStatuses=['Active','Controlled','Resolved / past','Unsure'];
 
 export const surgeryGroups:Group[]=[
@@ -46,7 +52,7 @@ export const hospitalizationGroups:Group[]=[
 
 export const familyIllnessGroups:Group[]=[
  {group:'Heart & metabolism',items:['Hypertension','Type 2 diabetes','Type 1 diabetes','Heart attack / coronary artery disease','Heart disease before age 55 (men) or 65 (women)','Sudden cardiac death','Stroke','High cholesterol','Obesity','Gout','Thyroid disease']},
- {group:'Cancer',items:['Breast cancer','Ovarian cancer','Colorectal cancer','Endometrial (uterine) cancer','Prostate cancer','Stomach cancer','Pancreatic cancer','Liver cancer','Lung cancer','Thyroid cancer','Nasopharyngeal cancer','Leukemia / lymphoma']},
+ {group:'Cancer',items:['Cancer','Breast cancer','Ovarian cancer','Colorectal cancer','Endometrial (uterine) cancer','Prostate cancer','Stomach cancer','Pancreatic cancer','Liver cancer','Lung cancer','Thyroid cancer','Nasopharyngeal cancer','Leukemia / lymphoma']},
  {group:'Kidney, lungs & allergy',items:['Kidney disease','Polycystic kidney disease','Asthma','Allergies / atopy','Tuberculosis (in the household)']},
  {group:'Blood & inherited',items:['Thalassemia','G6PD deficiency','Hemophilia / bleeding disorder','Anemia','Congenital heart disease or birth defect','Genetic disorder']},
  {group:'Brain & mental health',items:['Dementia / Alzheimer’s disease','Parkinson’s disease','Epilepsy','Depression','Bipolar disorder','Schizophrenia','Alcohol or substance use disorder']},

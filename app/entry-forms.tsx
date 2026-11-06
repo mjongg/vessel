@@ -2,7 +2,7 @@
 import type {HistoryItem,Medicine,Profile} from './health-data';
 import {useDraftState} from './drafts';
 import {Field,Pick,Save,useSave} from './health-forms';
-import {ChoiceField,GroupedChips} from './pickers';
+import {ChoiceField,OptionSelect} from './pickers';
 import {HistoryEntryFields,historyGroups,historyKinds} from './history-entry';
 import {composeHistory} from './entry-helpers';
 import {antibioticNames,frequencies,medicineGroups} from './pick-lists';
@@ -14,7 +14,7 @@ export function MedicineForm({profile,commit,existing}:{existing?:Medicine}&Base
  const[m,setM]=useDraftState<Medicine>('m',existing||{id:crypto.randomUUID(),name:'',dose:'',frequency:'',start:'',end:'',kind:'Maintenance',status:'Current'});
  const{busy,error,run}=useSave();
  // Tapping a name fills in the name (and marks an antibiotic as one). Dose and instructions are never assumed.
- const choose=(name:string)=>setM({...m,name:m.name===name?'':name,kind:antibioticNames.has(name)?'Antibiotic':m.kind==='Antibiotic'?'Maintenance':m.kind});
+ const choose=(name:string)=>setM({...m,name,kind:antibioticNames.has(name)?'Antibiotic':m.kind==='Antibiotic'?'Maintenance':m.kind});
  return <form className="entry-form" onSubmit={e=>{e.preventDefault();run(async()=>{
    if(!m.name.trim())throw new Error('Choose or type the medicine name.');
    if(m.end&&m.start&&m.end<m.start)throw new Error('End date must be on or after the start date.');
@@ -22,12 +22,10 @@ export function MedicineForm({profile,commit,existing}:{existing?:Medicine}&Base
    await commit({...profile,medicines:existing?profile.medicines.map(x=>x.id===m.id?saved:x):[...profile.medicines,saved]});
   })}}>
   <div className="info-note">Copy the medicine name, dose and instructions from the prescription or packaging. Leave unknown details blank.</div>
-  <Field label="Medicine name" required maxLength={300} value={m.name} onChange={e=>setM({...m,name:e.target.value})}/>
-  <details className="form-disclosure" open={!existing&&!m.name}><summary>Common medicines <span>tap to fill in the name</span></summary>
-   <GroupedChips label="medicines" groups={medicineGroups} selected={(_,v)=>m.name===v} onToggle={(_,v)=>choose(v)}/>
-  </details>
+  <OptionSelect label="Choose a medicine" groups={medicineGroups} onPick={(_,v)=>choose(v)} otherLabel="Medicine name"/>
+  <Field label="Medicine name" required maxLength={300} placeholder="Choose above, or type here" value={m.name} onChange={e=>setM({...m,name:e.target.value})}/>
   <Field label="Dose, as written (including unit)" placeholder="e.g. 50 mg" maxLength={300} value={m.dose} onChange={e=>setM({...m,dose:e.target.value})}/>
-  <ChoiceField label="How often, as prescribed" options={frequencies} value={m.frequency} onChange={v=>setM({...m,frequency:v})} placeholder="Or type the instructions"/>
+  <ChoiceField label="How often, as prescribed" options={frequencies} value={m.frequency} onChange={v=>setM({...m,frequency:v})} placeholder="Type the instructions"/>
   <div className="two-fields">
    <Pick label="Type" value={m.kind} onChange={v=>setM({...m,kind:v as Medicine['kind']})} options={['Maintenance','Antibiotic','Other']}/>
    <Pick label="Status" value={m.status} onChange={v=>setM({...m,status:v as Medicine['status']})} options={['Current','Completed','Stopped','Unconfirmed']}/>
@@ -51,11 +49,8 @@ export function HistoryForm({profile,commit,existing}:{existing?:HistoryItem}&Ba
    await commit({...profile,history:existing?profile.history.map(x=>x.id===h.id?saved:x):[...profile.history,saved]});
   })}}>
   <Pick label="History type" value={h.kind} options={historyKinds} onChange={v=>setH(composeHistory({...h,kind:v as HistoryItem['kind'],title:existing?h.title:'',category:undefined}))}/>
-  <Field label={label} required maxLength={300} placeholder="Tap an option below, or type here" value={h.title} onChange={e=>setH({...h,title:e.target.value})}/>
-  <details className="form-disclosure" open={!existing&&!h.title}><summary>Common options <span>tap to fill in</span></summary>
-   <GroupedChips label="options" groups={groups} selected={(g,v)=>h.title===v&&(h.kind!=='Allergy'||!h.category||h.category===g)}
-    onToggle={(g,v)=>setH(composeHistory({...h,title:h.title===v?'':v,category:h.kind==='Allergy'?g:undefined}))}/>
-  </details>
+  <OptionSelect label="Choose from the list" groups={groups} onPick={(g,v)=>setH(composeHistory({...h,title:v,category:h.kind==='Allergy'?g:undefined}))}/>
+  <Field label={label} required maxLength={300} placeholder="Choose above, or type here" value={h.title} onChange={e=>setH({...h,title:e.target.value})}/>
   {h.kind==='Allergy'&&<Pick label="Kind of allergy" value={h.category||'Not specified'} options={['Drug','Food','Environmental','Not specified']} onChange={v=>setH(composeHistory({...h,category:v==='Not specified'?undefined:v}))}/>}
   <HistoryEntryFields entry={h} onChange={setH}/>
   <Pick label="Information source" value={h.source} options={['Patient reported','Caregiver reported','From a medical document']} onChange={v=>setH({...h,source:v})}/>
