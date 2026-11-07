@@ -4,6 +4,7 @@ import type {HistoryItem} from './health-data';
 import {allergyGroups,allergyReactions,allergySeverities,commonAllergies,commonHistory,commonReactions,commonRelatives,conditionGroups,conditionScreen,conditionStatuses,familyIllnessGroups,familyScreen,forSex,hospitalizationGroups,relatives,surgeryGroups,type Group} from './pick-lists';
 import {byName,composeHistory,historyNote,splitList,toggleInList} from './entry-helpers';
 import {Chips,ChoiceField,NoneButton,OptionSelect,ShortChips} from './pickers';
+import {FamilyByRelative} from './family-history';
 
 type Kind=HistoryItem['kind'];
 export const historyKinds:Kind[]=['Allergy','Condition','Surgery','Hospitalization','Family history'];
@@ -14,7 +15,7 @@ const noneLabels:Record<Kind,string>={Allergy:'No known allergies',Condition:'No
 const addLabels:Record<Kind,string>={Allergy:'Has allergies',Condition:'Has conditions or past illnesses',Surgery:'Has had surgery',Hospitalization:'Has been hospitalized','Family history':'Has family illnesses'};
 const allergyTitle=(group:string)=>group==='Environmental'?'Environmental allergy':group+' allergy';
 const screens:Partial<Record<Kind,string[]>>={Condition:[...conditionScreen].sort(byName),'Family history':[...familyScreen].sort(byName)};
-const reactions=[...allergyReactions].sort(byName),family=[...relatives].sort(byName);
+const reactions=[...allergyReactions].sort(byName),family=relatives;
 
 const Labeled=({label,children}:{label:string;children:React.ReactNode})=><div className="field"><span>{label}</span>{children}</div>;
 // What a clinician asks next for the two conditions tracked most closely.
@@ -60,7 +61,7 @@ export function HistorySection({kind,entries,source,sex,none,onNone,onChange}:{k
   <h3>{historyTitles[kind]}{mine.length>0&&<span className="tag">{mine.length}</span>}</h3>
   {!mine.length&&<NoneButton label={noneLabels[kind]} on={none} onChange={onNone}/>}
   {!none&&<details className="form-disclosure" open={mine.length>0||undefined}><summary>{addLabels[kind]}</summary>
-   {kind==='Allergy'
+   {kind==='Family history'?<FamilyByRelative entries={entries} source={source} onChange={onChange}/>:kind==='Allergy'
     ?<>{allergyGroups.map(g=><div key={g.group} className="allergy-kind"><OptionSelect label={allergyTitle(g.group)} groups={[g]} common={commonAllergies[g.group]} onPick={add} isTaken={taken} otherLabel={'Type the '+g.group.toLowerCase()+' allergy'}/>{mine.filter(h=>h.category===g.group).map(card)}</div>)}{mine.filter(h=>!h.category||!known.has(h.category)).map(card)}</>
     :<>{screen&&<div className="field"><span>Tap any that apply</span><Chips label={historyTitles[kind]} options={screen} selected={screen.filter(taken)} onToggle={v=>{const h=mine.find(x=>x.title===v);if(h)remove(h.id);else add('',v)}}/></div>}
      <OptionSelect label={screen?'Something else?':'Choose from the list'} groups={groups} common={commonHistory[kind]} onPick={add} isTaken={taken}/>

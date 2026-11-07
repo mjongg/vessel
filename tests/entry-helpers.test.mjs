@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {forSex,suggestedMedicines,conditionGroups,familyIllnessGroups,medicineGroups,commonHistory,commonAllergies,allergyGroups,surgeryGroups,hospitalizationGroups} from '../app/pick-lists.ts';
-import {splitPhone,joinPhone,composeHistory,toggleInList,splitList,countryCodes,reportedNone,splitDose,joinDose,doseNeedsUnit,historyFacts} from '../app/entry-helpers.ts';
+import {splitPhone,joinPhone,composeHistory,toggleInList,splitList,countryCodes,reportedNone,splitDose,joinDose,doseNeedsUnit,historyFacts,familyByPerson} from '../app/entry-helpers.ts';
 
 test('phone numbers keep their country code, and an empty number stores nothing',()=>{
  assert.deepEqual(splitPhone('+63 917 123 4567'),{code:'+63',number:'917 123 4567'});
@@ -78,4 +78,8 @@ test('history reads as labelled facts, leaving out what is unknown',()=>{
  assert.deepEqual(historyFacts({...base,kind:'Allergy',category:'Drug',reactions:'Rash; Hives',severity:'Unknown'}),[['Type','Drug'],['Reaction','Rash, Hives']]);
  assert.deepEqual(historyFacts({...base,kind:'Condition',status:'Controlled',year:'2015'}),[['Status','Controlled'],['Since','2015']]);
  assert.deepEqual(historyFacts({...base,kind:'Allergy'}),[]);
+});
+test('family history reads by person, closest relatives first',()=>{
+ const items=[{...base,kind:'Family history',title:'Stroke',relative:'Paternal grandfather; Father'},{...base,kind:'Family history',title:'Hypertension',relative:'Mother; Father'},{...base,kind:'Family history',title:'Asthma'}];
+ assert.deepEqual(familyByPerson(items,['Mother','Father','Paternal grandfather']).map(([p,l])=>[p,l.map(h=>h.title)]),[['Mother',['Hypertension']],['Father',['Stroke','Hypertension']],['Paternal grandfather',['Stroke']],['Relative not recorded',['Asthma']]]);
 });

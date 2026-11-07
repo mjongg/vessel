@@ -57,3 +57,11 @@ export function historyFacts(h:HistoryItem):[string,string][]{
  const list=(v?:string)=>splitList(v).join(', ');
  return ([['Type',h.category],['Reaction',list(h.reactions)],['Severity',h.severity==='Unknown'?'':h.severity],['Status',h.status],['Relatives',list(h.relative)],[h.kind==='Condition'?'Since':'Year',h.year]] as [string,string|undefined][]).filter((f):f is [string,string]=>!!f[1]);
 }
+
+/** Family history read by person, closest relatives first. Illnesses with no relative recorded come last. */
+export function familyByPerson(items:HistoryItem[],order:string[]):[string,HistoryItem[]][]{
+ const people=[...new Set(items.flatMap(h=>splitList(h.relative)))].sort((a,b)=>{const x=order.indexOf(a),y=order.indexOf(b);return (x<0?99:x)-(y<0?99:y)});
+ const rows=people.map(p=>[p,items.filter(h=>splitList(h.relative).includes(p))] as [string,HistoryItem[]]);
+ const unlinked=items.filter(h=>!splitList(h.relative).length);
+ return unlinked.length?[...rows,['Relative not recorded',unlinked]]:rows;
+}

@@ -4,9 +4,9 @@ import type {Profile,ProfileDetails,HistoryItem,Medicine} from './health-data';
 import {useDraftState} from './drafts';
 import {Chips,ChoiceField,DoseInput,NoneButton,OptionSelect,PhoneInput} from './pickers';
 import {HistorySection,historyKinds,historyTitles} from './history-entry';
-import {byName,doseNeedsUnit,medicineTimes,reportedNone,splitList,toggleInList} from './entry-helpers';
+import {byName,doseNeedsUnit,familyByPerson,medicineTimes,reportedNone,splitList,toggleInList} from './entry-helpers';
 import {dateText} from './health-data';
-import {alcoholOptions,antibioticNames,emergencyRelationships,forSex,frequencies,medicineGroups,medicineScreen,relationshipsToYou,smokingOptions,suggestedMedicines} from './pick-lists';
+import {alcoholOptions,antibioticNames,emergencyRelationships,forSex,frequencies,medicineGroups,medicineScreen,relationshipsToYou,relatives,smokingOptions,suggestedMedicines} from './pick-lists';
 
 const defaults:ProfileDetails={preferredName:'',sex:'',bloodType:'',phone:'',email:'',address:'',emergencyName:'',emergencyRelationship:'',emergencyPhone:'',allergyStatus:'Unknown',medicineStatus:'Unknown'};
 const steps=['Personal Details','Contact & Emergency','Medical History','Medications','Review'];
@@ -125,7 +125,7 @@ export function ProfileEditor({existing,onSave,onSaveStep,onboarding=false}:{exi
   </section>
   <section className="review-section">{reviewHead('Medical History',2)}
    {historyKinds.map(kind=>{const items=draft.history.filter(h=>h.kind===kind);return <div key={kind} className="review-group"><h4>{historyTitles[kind]}</h4>
-    {items.length?<ol>{items.map(h=><li key={h.id}><strong>{h.title}</strong>{h.details&&<><br/>{h.details}</>}{(h.date||h.facility)&&<><br/>{[h.date&&dateText(h.date),h.facility].filter(Boolean).join(' · ')}</>}</li>)}</ol>:<p>{reportedNone({...draft,details},kind)?'None reported':'Not recorded'}</p>}</div>})}
+    {kind==='Family history'&&items.length?<dl className="review-list">{familyByPerson(items,relatives).map(([person,list])=><div key={person}><dt>{person}</dt><dd>{list.map(h=>h.title).join(', ')}</dd></div>)}</dl>:items.length?<ol>{items.map(h=><li key={h.id}><strong>{h.title}</strong>{h.details&&<><br/>{h.details}</>}{(h.date||h.facility)&&<><br/>{[h.date&&dateText(h.date),h.facility].filter(Boolean).join(' · ')}</>}</li>)}</ol>:<p>{reportedNone({...draft,details},kind)?'None reported':'Not recorded'}</p>}</div>})}
   </section>
   <section className="review-section">{reviewHead('Medications',3)}
    {draft.medicines.length?<ol>{draft.medicines.map(m=><li key={m.id}><strong>{m.name} {m.dose||'(dose not recorded)'}</strong><br/>{[m.frequency||'Frequency not recorded',splitList(m.times).join(', '),m.status].filter(Boolean).join(' · ')}</li>)}</ol>:<p>{details.medicineStatus==='None reported'?'None reported':'Not recorded'}</p>}

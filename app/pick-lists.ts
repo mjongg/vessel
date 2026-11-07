@@ -58,7 +58,14 @@ export const familyIllnessGroups:Group[]=[
  {group:'Brain & mental health',items:['Dementia / Alzheimer’s disease','Parkinson’s disease','Epilepsy','Depression','Bipolar disorder','Schizophrenia','Alcohol or substance use disorder']},
  {group:'Other',items:['Glaucoma','Osteoporosis','Autoimmune disease (e.g. lupus, rheumatoid arthritis)']},
 ];
-export const relatives=['Father','Mother','Brother','Sister','Son','Daughter','Paternal grandfather','Paternal grandmother','Maternal grandfather','Maternal grandmother','Uncle','Aunt','Cousin'];
+export const relativeGroups:Group[]=[
+ {group:'Parents',items:['Mother','Father']},
+ {group:'Siblings',items:['Sister','Brother']},
+ {group:'Children',items:['Daughter','Son']},
+ {group:'Father’s side',items:['Paternal grandmother','Paternal grandfather','Paternal aunt','Paternal uncle','Paternal cousin']},
+ {group:'Mother’s side',items:['Maternal grandmother','Maternal grandfather','Maternal aunt','Maternal uncle','Maternal cousin']},
+];
+export const relatives=relativeGroups.flatMap(g=>g.items);
 
 export const medicineGroups:Group[]=[
  {group:'Blood pressure & heart',items:['Amlodipine','Losartan','Telmisartan','Enalapril','Metoprolol','Carvedilol','Bisoprolol','Hydrochlorothiazide','Furosemide','Spironolactone']},
@@ -100,7 +107,7 @@ export const commonHistory:Record<string,string[]>={
 };
 export const commonVaccines=['Influenza','COVID-19','Pneumococcal (PCV)','Pneumococcal (PPSV23)','Tetanus-diphtheria (Td / Tdap)','Tetanus toxoid','Hepatitis B','HPV','Rabies'];
 export const commonReactions=['Rash','Hives','Itching','Swelling of lips, face or eyes','Difficulty breathing or wheezing','Anaphylaxis'];
-export const commonRelatives=['Father','Mother','Brother','Sister'];
+export const commonRelatives=['Mother','Father','Sister','Brother'];
 
 const commonMedicines=['Amlodipine','Losartan','Metformin','Atorvastatin','Aspirin','Omeprazole','Paracetamol','Salbutamol inhaler','Multivitamins'];
 const womenMedicines=['Combined oral contraceptive pill','Prenatal vitamins','Folic acid','Ferrous sulfate','Calcium + vitamin D'];
