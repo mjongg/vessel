@@ -10,12 +10,12 @@ import {alcoholOptions,antibioticNames,emergencyRelationships,forSex,frequencies
 
 const defaults:ProfileDetails={preferredName:'',sex:'',bloodType:'',phone:'',email:'',address:'',emergencyName:'',emergencyRelationship:'',emergencyPhone:'',allergyStatus:'Unknown',medicineStatus:'Unknown'};
 const steps=['Personal Details','Contact & Emergency','Medical History','Medications','Review'];
-const hints=[
- 'Your full name is required. Everything else can be added later.',
- 'Add the best way to reach you and someone to contact in an emergency.',
+const hints=(self:boolean)=>[
+ (self?'Your':'Their')+' full name is required. Everything else can be added later.',
+ 'Add the best way to reach '+(self?'you':'them')+' and someone to contact in an emergency.',
  'Answer each section with one tap, or open it to add entries. Skip anything you are unsure of.',
  'Add medicines taken now or recently. Copy the dose from the prescription or packaging; if unsure, leave it blank. Prescriptions and vaccine cards can be uploaded from Records after setup.',
- 'Check your details before saving. Use Back to make a correction.',
+ 'Check the details before saving. Use Back to make a correction.',
 ];
 const autoComplete:Partial<Record<keyof ProfileDetails,string>>={preferredName:'nickname',email:'email',address:'street-address',emergencyName:'section-emergency name'};
 const reviewLabels:Record<string,string>={preferredName:'Preferred Name',sex:'Sex Assigned at Birth',bloodType:'Blood Type',phone:'Phone',email:'Contact Email',address:'Address',emergencyName:'Emergency Contact',emergencyRelationship:'Relationship',emergencyPhone:'Emergency Phone',smoking:'Smoking',alcohol:'Alcohol',occupation:'Work',lmp:'Last Menstrual Period'};
@@ -29,6 +29,11 @@ export function ProfileEditor({existing,onSave,onSaveStep,onboarding=false}:{exi
  useEffect(()=>{heading.current?.focus()},[step]);
 
  const details={...defaults,...draft.details};
+ // Adding someone else: the form speaks about them, and "You" is not offered because the account already has its own profile.
+ const self=onboarding||existing?.role==='Owner';
+ const relationships=self?relationshipsToYou:relationshipsToYou.filter(r=>r!=='You');
+ const[openMed,setOpenMed]=useState<string|null>(null);
+ const addMedicine=(name:string)=>{const m=newMedicine(name);setDraft(p=>({...p,medicines:[...p.medicines,m]}));setOpenMed(m.id)};
  const source=draft.relationship==='You'?'Patient reported':'Caregiver reported';
  const hasAllergies=draft.history.some(h=>h.kind==='Allergy'),hasCurrentMeds=draft.medicines.some(m=>m.status==='Current');
  const field=(key:keyof ProfileDetails,value:string)=>setDraft(p=>({...p,details:{...defaults,...p.details,[key]:value}}));
@@ -65,19 +70,19 @@ export function ProfileEditor({existing,onSave,onSaveStep,onboarding=false}:{exi
  function submit(e:React.FormEvent){e.preventDefault();void save(step===4)}
 
  const personal=<>
-  <label className="field"><span>Full Name *</span><input required maxLength={100} autoComplete="name" value={draft.name==='Your name'?'':draft.name} onChange={e=>setDraft(p=>({...p,name:e.target.value}))}/></label>
+  <label className="field"><span>{self?'Full Name *':'Their Full Name *'}</span><input required maxLength={100} autoComplete="name" value={draft.name==='Your name'?'':draft.name} onChange={e=>setDraft(p=>({...p,name:e.target.value}))}/></label>
   <div className="two-fields">{text('Preferred Name','preferredName')}<label className="field"><span>Date of Birth</span><input type="date" autoComplete="bday" max={today()} value={draft.dob} onChange={e=>setDraft(p=>({...p,dob:e.target.value}))}/></label></div>
   <div className="two-fields">
    <label className="field"><span>Sex Assigned at Birth (optional)</span><select value={details.sex} onChange={e=>field('sex',e.target.value)}>{['','Female','Male','Intersex','Prefer not to say'].map(v=><option key={v} value={v}>{v||'Not recorded'}</option>)}</select></label>
    <label className="field"><span>Blood Type (if confirmed)</span><select value={details.bloodType} onChange={e=>field('bloodType',e.target.value)}>{['','A+','A-','B+','B-','AB+','AB-','O+','O-'].map(v=><option key={v} value={v}>{v||'Unknown'}</option>)}</select></label>
   </div>
-  <label className="field"><span>Relationship to You</span><select required value={draft.relationship} onChange={e=>setDraft(p=>({...p,relationship:e.target.value}))}>{!draft.relationship&&<option value="">Choose…</option>}{[...new Set([...relationshipsToYou,draft.relationship])].filter(Boolean).map(v=><option key={v}>{v}</option>)}</select></label>
-  <p className="info-note">Enter details for yourself or someone you are authorized to care for. These details are self-reported.</p>
+  <label className="field"><span>Relationship to You</span><select required value={draft.relationship} onChange={e=>setDraft(p=>({...p,relationship:e.target.value}))}>{!draft.relationship&&<option value="">Choose…</option>}{[...new Set([...relationships,draft.relationship])].filter(Boolean).map(v=><option key={v}>{v}</option>)}</select></label>
+  <p className="info-note">{self?'These details are self-reported.':'Only add someone you are authorized to care for. These details are as reported by you.'}</p>
  </>;
 
  const contact=<>
   <div className="two-fields"><PhoneInput label="Contact Number" autoComplete="tel-national" value={details.phone} onChange={v=>field('phone',v)}/>{text('Contact Email','email','email',254)}</div>
-  <p className="field-hint">Your contact email does not change the email you use to sign in.</p>
+  {self&&<p className="field-hint">Your contact email does not change the email you use to sign in.</p>}
   {text('Home Address (optional)','address','text',1000)}
   <h3>Emergency Contact</h3>
   <p className="muted">For reference only. Adding a contact does not grant them access or send a notification.</p>
@@ -98,19 +103,21 @@ export function ProfileEditor({existing,onSave,onSaveStep,onboarding=false}:{exi
  const medicines=<>
   {!draft.medicines.length&&<NoneButton label="Not taking any medicines" on={details.medicineStatus==='None reported'} onChange={on=>field('medicineStatus',on?'None reported':'Unknown')}/>}
   {(draft.medicines.length>0||details.medicineStatus!=='None reported')&&<>
-   <OptionSelect label="Add a medicine" groups={forSex(medicineGroups,details.sex)} common={suggestedMedicines(draft.history.filter(h=>h.kind==='Condition').map(h=>h.title),details.sex)} isTaken={v=>draft.medicines.some(m=>m.name===v)} onPick={(_,v)=>setDraft(p=>({...p,medicines:[...p.medicines,newMedicine(v)]}))} otherLabel="Medicine name"/>
-   <div className="field"><span>Also taking?</span><Chips label="Also taking" options={[...medicineScreen].sort(byName)} selected={medicineScreen.filter(v=>draft.medicines.some(m=>m.name===v))} onToggle={v=>setDraft(p=>({...p,medicines:p.medicines.some(m=>m.name===v)?p.medicines.filter(m=>m.name!==v):[...p.medicines,newMedicine(v)]}))}/></div>
+   <OptionSelect label="Add a medicine" groups={forSex(medicineGroups,details.sex)} common={suggestedMedicines(draft.history.filter(h=>h.kind==='Condition').map(h=>h.title),details.sex)} isTaken={v=>draft.medicines.some(m=>m.name===v)} onPick={(_,v)=>addMedicine(v)} otherLabel="Medicine name"/>
+   <div className="field"><span>Also taking?</span><Chips label="Also taking" options={[...medicineScreen].sort(byName)} selected={medicineScreen.filter(v=>draft.medicines.some(m=>m.name===v))} onToggle={v=>{if(draft.medicines.some(m=>m.name===v))setDraft(p=>({...p,medicines:p.medicines.filter(m=>m.name!==v)}));else addMedicine(v)}}/></div>
   </>}
   {draft.medicines.map(m=><section className="entry-card" key={m.id}>
    <div className="picked-head"><strong>{m.name||'New medication'}</strong><button type="button" className="text-btn" onClick={()=>setDraft(p=>({...p,medicines:p.medicines.filter(x=>x.id!==m.id)}))}>Remove</button></div>
+   <details className="entry-more" open={openMed===m.id} onToggle={e=>{const open=e.currentTarget.open;setOpenMed(now=>open?m.id:now===m.id?null:now)}}><summary>{openMed===m.id?'Hide details':[m.dose,m.frequency,splitList(m.times).join(', ')].filter(Boolean).join(' · ')||'Add dose and schedule'}</summary><div className="entry-fields">
    <DoseInput value={m.dose} onChange={v=>patchMedicine(m.id,{dose:v})}/>
    <ChoiceField label="How often, as prescribed" options={frequencies} value={m.frequency} onChange={v=>patchMedicine(m.id,{frequency:v})} placeholder="Type the instructions"/>
    <div className="field"><span>When is it taken? Tap all that apply</span><Chips label="When it is taken" options={medicineTimes} selected={splitList(m.times)} onToggle={v=>patchMedicine(m.id,{times:toggleInList(m.times,v)})}/></div>
-   <div className="two-fields">
+   <details className="entry-more"><summary>Type, status and dates</summary><div className="entry-fields"><div className="two-fields">
     <label className="field"><span>Type</span><select value={m.kind} onChange={e=>patchMedicine(m.id,{kind:e.target.value as Medicine['kind']})}>{['Maintenance','Antibiotic','Other'].map(v=><option key={v}>{v}</option>)}</select></label>
     <label className="field"><span>Status</span><select value={m.status} onChange={e=>patchMedicine(m.id,{status:e.target.value as Medicine['status']})}>{['Current','Completed','Stopped','Unconfirmed'].map(v=><option key={v}>{v}</option>)}</select></label>
    </div>
-   <details className="entry-more"><summary>Add start or end date</summary><div className="two-fields"><label className="field"><span>Start Date</span><input type="date" value={m.start} onChange={e=>patchMedicine(m.id,{start:e.target.value})}/></label><label className="field"><span>End Date</span><input type="date" value={m.end} onChange={e=>patchMedicine(m.id,{end:e.target.value})}/></label></div></details>
+   <div className="two-fields"><label className="field"><span>Start Date</span><input type="date" value={m.start} onChange={e=>patchMedicine(m.id,{start:e.target.value})}/></label><label className="field"><span>End Date</span><input type="date" value={m.end} onChange={e=>patchMedicine(m.id,{end:e.target.value})}/></label></div></div></details>
+   </div></details>
   </section>)}
  </>;
 
@@ -135,7 +142,7 @@ export function ProfileEditor({existing,onSave,onSaveStep,onboarding=false}:{exi
 
  return <form className="entry-form profile-wizard" onSubmit={submit}>
   <div className="setup-progress" aria-label="Profile setup progress">{steps.map((name,i)=><span key={name} aria-current={i===step?'step':undefined} className={i===step?'active':i<step?'done':''}>{i+1}<small>{name}</small></span>)}</div>
-  <header><p className="eyebrow">STEP {step+1} OF {steps.length}</p><h2 ref={heading} tabIndex={-1}>{steps[step]}</h2><p className="muted">{hints[step]}</p></header>
+  <header><p className="eyebrow">STEP {step+1} OF {steps.length}</p><h2 ref={heading} tabIndex={-1}>{steps[step]}</h2><p className="muted">{hints(self)[step]}</p></header>
   <fieldset disabled={busy} className="setup-fields">{[personal,contact,history,medicines,review][step]}</fieldset>
   {error&&<p role="alert" className="form-error">{error}</p>}
   {saved&&<p role="status" className="step-saved">✓ {saved}</p>}

@@ -65,3 +65,20 @@ export function familyByPerson(items:HistoryItem[],order:string[]):[string,Histo
  const unlinked=items.filter(h=>!splitList(h.relative).length);
  return unlinked.length?[...rows,['Relative not recorded',unlinked]]:rows;
 }
+
+/** What is wrong with a reading, or '' if it can be saved. These only catch typing slips; they say nothing about whether a value is healthy. */
+export function checkReading(type:string,value:string){
+ if(type==='Symptom')return '';
+ if(type==='Blood pressure'){const m=value.match(/^(\d{2,3})\/(\d{2,3})$/);return !m||+m[1]<=+m[2]||+m[1]<40||+m[1]>300||+m[2]<20||+m[2]>200?'Check the blood pressure. Use systolic/diastolic, for example 120/70.':''}
+ const n=Number(value);
+ if(!value.trim()||!Number.isFinite(n)||n<=0)return 'Enter a positive number for '+type.toLowerCase()+'.';
+ if(type==='Temperature'&&(n<25||n>45))return 'Check the temperature in °C.';
+ if(type==='Oxygen saturation'&&n>100)return 'Oxygen saturation cannot exceed 100%.';
+ return '';
+}
+
+/** The vitals someone actually filled in, each as its own reading. A blank box is skipped, never saved as zero or normal. */
+export function vitalsToSave(v:{systolic:string;diastolic:string;pulse:string;temperature:string;oxygen:string;glucose:string;glucoseUnit:string}){
+ const bp=v.systolic.trim()||v.diastolic.trim()?v.systolic.trim()+'/'+v.diastolic.trim():'';
+ return ([['Blood pressure',bp,'mmHg'],['Pulse',v.pulse.trim(),'bpm'],['Temperature',v.temperature.trim(),'°C'],['Oxygen saturation',v.oxygen.trim(),'%'],['Glucose',v.glucose.trim(),v.glucoseUnit]] as const).filter(([,value])=>value).map(([type,value,unit])=>({type,value,unit}));
+}

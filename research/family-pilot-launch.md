@@ -1,3 +1,11 @@
+# Launch usability pass, 7 November 2026
+
+Walked through as first-time user, family admin and nurse on a 390px phone in the local demo; patient, contributor and viewer screens were checked from the code, not with real second sign-ins.
+
+Fixed: "none known" answers now show on Home; contributors see "Not shared with your role" instead of "Not yet recorded", and no Doctor summary built from partial data; vitals round on one form; medicine cards fold (689px to 102px each); photos over 4 MB are reduced in the browser before upload; entries and family profiles can be removed; "You" no longer offered when adding a family member; shorter Home and Simple home; mobile nav has Add and More; stale prototype text replaced; unconnected Google and Apple buttons hidden; security headers and a draft /privacy page added.
+
+Limits: removing a document does not delete its stored file. Contributors still cannot see doctors' contacts or emergency contacts. Medicine tick-off is not built. The /privacy page needs legal review. Uploads between 1 and 4 MB could not be run end to end in the local demo, whose server stops at 1 MB.
+
 # Vessel family pilot — readiness, 15 October 2026
 
 ## Current status

@@ -194,3 +194,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* Family history by person */
 .family-people{display:grid;gap:14px}.family-people>section{display:grid;gap:2px}.family-people h4{margin:0 0 4px;font-size:.82rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--vessel-muted)}.family-person{border-bottom:1px solid var(--vessel-border)}.family-person>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:8px 2px;cursor:pointer}.family-person>summary span{color:var(--vessel-muted);font-size:.9rem;text-align:right}.family-person-fields{display:grid;gap:12px;padding:6px 0 16px}.family-notes>summary{min-height:40px;padding:6px 0;color:var(--vessel-purple);font-weight:600;cursor:pointer}.family-notes .field{margin-top:10px}
 .family-read{display:grid;margin:0}.family-read>div{display:grid;grid-template-columns:minmax(0,9rem) minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px solid var(--vessel-border)}.family-read>div:last-child{border-bottom:0}.family-read dt{font-weight:600}.family-read dd{display:grid;justify-items:start;gap:2px;margin:0}.family-read button{min-height:32px;padding:2px 0;border:0;background:none;color:var(--vessel-ink);font:inherit;text-align:left;cursor:pointer}
+
+/* Launch usability pass */
+.bp-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}.bp-row>span{font-size:1.4rem;color:var(--vessel-muted)}
+.vitals-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.profile-wizard .vitals-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.remove-entry{justify-self:start;margin-top:14px;min-height:44px}.remove-confirm{display:grid;gap:10px;margin-top:14px;padding:14px;border:1px solid #d9b8c4;border-radius:var(--radius);background:#fbf1f4}.remove-confirm p{margin:0}
+.danger-btn{min-height:44px;padding:10px 18px;border:0;border-radius:999px;background:#85445f;color:#fff;font-weight:600}.danger-btn:disabled{opacity:.6}
+.nav-add svg{color:var(--vessel-purple)}
+.simple-view .home-monitoring,.simple-view .home-recent,.simple-view .home-followup,.simple-view .home-family,.simple-view .privacy-note{display:none}
+.simple-view .big-action strong{font-size:1.15rem}.simple-view .big-action span{font-size:1rem}
+.profile-strip .text-btn,.page-footer button{min-height:44px}.global-search input{min-height:44px}
+.demo-tag,.tag,.hero-kicker,.record-hero .hero-kicker{font-size:.75rem}.record-shortcuts strong,.summary-grid .label,.quick-card>span:last-of-type{font-size:.8125rem}
+.legal-page{max-width:720px;margin:0 auto;padding:40px 22px 80px;line-height:1.65;color:var(--vessel-ink)}.legal-page h1{font-family:Georgia,serif;font-size:2.2rem;font-weight:400;margin:24px 0 6px}.legal-page h2{font-size:1.15rem;margin:30px 0 6px}.legal-page p,.legal-page li{color:var(--vessel-muted)}.legal-page a{color:var(--vessel-purple)}
+@media print{.legal-page{padding:0}.legal-page a{color:inherit}}
+.simple-view{display:flex;flex-direction:column}.simple-view .home-health{order:5}.simple-view .page-footer{order:9}
