@@ -4,7 +4,7 @@ export type Category=typeof categories[number];
 export type Stamp={addedBy?:string;addedById?:string;addedAt?:string;editedBy?:string;editedById?:string;editedAt?:string};
 export type Lab={name:string;value:string;unit:string;low:string;high:string};
 export type RecordItem=Stamp&{id:string;category:Category;title:string;date:string;facility:string;notes:string;fileId?:string;fileName?:string;labs:Lab[];reviewed:boolean;updatedAt?:string;versions?:{date:string;title:string;notes:string;snapshot?:string}[]};
-export type Medicine=Stamp&{id:string;name:string;dose:string;frequency:string;start:string;end:string;kind:'Maintenance'|'Antibiotic'|'Other';status:'Current'|'Completed'|'Stopped'|'Unconfirmed'};
+export type Medicine=Stamp&{id:string;name:string;dose:string;frequency:string;start:string;end:string;kind:'Maintenance'|'Antibiotic'|'Other';status:'Current'|'Completed'|'Stopped'|'Unconfirmed';times?:string};
 export type HistoryItem=Stamp&{id:string;kind:'Allergy'|'Condition'|'Surgery'|'Hospitalization'|'Family history';title:string;details:string;date:string;facility:string;source:string;
  // Optional structured choices from the tap-to-select forms. `details` is always rebuilt from these plus `note` (see composeHistory),
  // so every screen that shows `title` and `details` stays correct without knowing about them.

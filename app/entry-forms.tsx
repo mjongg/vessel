@@ -2,10 +2,10 @@
 import type {HistoryItem,Medicine,Profile} from './health-data';
 import {useDraftState} from './drafts';
 import {Field,Pick,Save,useSave} from './health-forms';
-import {ChoiceField,OptionSelect} from './pickers';
+import {Chips,ChoiceField,DoseInput,OptionSelect} from './pickers';
 import {HistoryEntryFields,historyGroups,historyKinds} from './history-entry';
-import {composeHistory} from './entry-helpers';
-import {antibioticNames,frequencies,medicineGroups} from './pick-lists';
+import {composeHistory,doseNeedsUnit,medicineTimes,splitList,toggleInList} from './entry-helpers';
+import {antibioticNames,commonAllergies,commonHistory,forSex,frequencies,medicineGroups,suggestedMedicines} from './pick-lists';
 
 type Base={profile:Profile;commit:(profile:Profile)=>Promise<void>};
 const thisYear=()=>Number(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',year:'numeric'}).format(new Date()));
@@ -17,15 +17,17 @@ export function MedicineForm({profile,commit,existing}:{existing?:Medicine}&Base
  const choose=(name:string)=>setM({...m,name,kind:antibioticNames.has(name)?'Antibiotic':m.kind==='Antibiotic'?'Maintenance':m.kind});
  return <form className="entry-form" onSubmit={e=>{e.preventDefault();run(async()=>{
    if(!m.name.trim())throw new Error('Choose or type the medicine name.');
+   if(doseNeedsUnit(m.dose))throw new Error('Choose the unit for the dose, such as mg.');
    if(m.end&&m.start&&m.end<m.start)throw new Error('End date must be on or after the start date.');
    const saved={...m,name:m.name.trim()};
    await commit({...profile,medicines:existing?profile.medicines.map(x=>x.id===m.id?saved:x):[...profile.medicines,saved]});
   })}}>
   <div className="info-note">Copy the medicine name, dose and instructions from the prescription or packaging. Leave unknown details blank.</div>
-  <OptionSelect label="Choose a medicine" groups={medicineGroups} onPick={(_,v)=>choose(v)} otherLabel="Medicine name"/>
+  <OptionSelect label="Choose a medicine" groups={forSex(medicineGroups,profile.details?.sex)} common={suggestedMedicines(profile.history.filter(h=>h.kind==='Condition').map(h=>h.title),profile.details?.sex)} onPick={(_,v)=>choose(v)} otherLabel="Medicine name"/>
   <Field label="Medicine name" required maxLength={300} placeholder="Choose above, or type here" value={m.name} onChange={e=>setM({...m,name:e.target.value})}/>
-  <Field label="Dose, as written (including unit)" placeholder="e.g. 50 mg" maxLength={300} value={m.dose} onChange={e=>setM({...m,dose:e.target.value})}/>
+  <DoseInput value={m.dose} onChange={v=>setM({...m,dose:v})}/>
   <ChoiceField label="How often, as prescribed" options={frequencies} value={m.frequency} onChange={v=>setM({...m,frequency:v})} placeholder="Type the instructions"/>
+  <div className="field"><span>When is it taken? Tap all that apply</span><Chips label="When it is taken" options={medicineTimes} selected={splitList(m.times)} onToggle={v=>setM({...m,times:toggleInList(m.times,v)})}/></div>
   <div className="two-fields">
    <Pick label="Type" value={m.kind} onChange={v=>setM({...m,kind:v as Medicine['kind']})} options={['Maintenance','Antibiotic','Other']}/>
    <Pick label="Status" value={m.status} onChange={v=>setM({...m,status:v as Medicine['status']})} options={['Current','Completed','Stopped','Unconfirmed']}/>
@@ -40,7 +42,8 @@ export function MedicineForm({profile,commit,existing}:{existing?:Medicine}&Base
 export function HistoryForm({profile,commit,existing}:{existing?:HistoryItem}&Base){
  const[h,setH]=useDraftState<HistoryItem>('h',existing||{id:crypto.randomUUID(),kind:'Allergy',title:'',details:'',date:'',facility:'',source:'Patient reported',note:''});
  const{busy,error,run}=useSave();
- const groups=historyGroups(h.kind);
+ const groups=h.kind==='Family history'?historyGroups(h.kind):forSex(historyGroups(h.kind),profile.details?.sex);
+ const common=h.kind==='Allergy'?Object.values(commonAllergies).flat():commonHistory[h.kind];
  const label=h.kind==='Allergy'?'What is the allergy to?':h.kind==='Condition'?'Which condition?':h.kind==='Surgery'?'Which surgery?':h.kind==='Hospitalization'?'Reason for admission':'Which illness runs in the family?';
  return <form className="entry-form" onSubmit={e=>{e.preventDefault();run(async()=>{
    if(!h.title.trim())throw new Error('Choose an option or type a name first.');
@@ -49,7 +52,7 @@ export function HistoryForm({profile,commit,existing}:{existing?:HistoryItem}&Ba
    await commit({...profile,history:existing?profile.history.map(x=>x.id===h.id?saved:x):[...profile.history,saved]});
   })}}>
   <Pick label="History type" value={h.kind} options={historyKinds} onChange={v=>setH(composeHistory({...h,kind:v as HistoryItem['kind'],title:existing?h.title:'',category:undefined}))}/>
-  <OptionSelect label="Choose from the list" groups={groups} onPick={(g,v)=>setH(composeHistory({...h,title:v,category:h.kind==='Allergy'?g:undefined}))}/>
+  <OptionSelect label="Choose from the list" groups={groups} common={common} onPick={(g,v)=>setH(composeHistory({...h,title:v,category:h.kind==='Allergy'?g:undefined}))}/>
   <Field label={label} required maxLength={300} placeholder="Choose above, or type here" value={h.title} onChange={e=>setH({...h,title:e.target.value})}/>
   {h.kind==='Allergy'&&<Pick label="Kind of allergy" value={h.category||'Not specified'} options={['Drug','Food','Environmental','Not specified']} onChange={v=>setH(composeHistory({...h,category:v==='Not specified'?undefined:v}))}/>}
   <HistoryEntryFields entry={h} onChange={setH}/>

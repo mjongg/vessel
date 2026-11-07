@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {splitPhone,joinPhone,composeHistory,toggleInList,splitList,countryCodes,reportedNone} from '../app/entry-helpers.ts';
+import {forSex,suggestedMedicines,conditionGroups,familyIllnessGroups,medicineGroups,commonHistory,commonAllergies,allergyGroups,surgeryGroups,hospitalizationGroups} from '../app/pick-lists.ts';
+import {splitPhone,joinPhone,composeHistory,toggleInList,splitList,countryCodes,reportedNone,splitDose,joinDose,doseNeedsUnit,historyFacts} from '../app/entry-helpers.ts';
 
 test('phone numbers keep their country code, and an empty number stores nothing',()=>{
  assert.deepEqual(splitPhone('+63 917 123 4567'),{code:'+63',number:'917 123 4567'});
@@ -42,4 +43,39 @@ test('a none answer is distinct from unanswered, and never survives a later entr
  assert.equal(reportedNone(none,'Surgery'),true);
  assert.equal(reportedNone(none,'Hospitalization'),false);
  assert.equal(reportedNone({...none,history:[{id:'a',kind:'Condition',title:'Asthma'}]},'Condition'),false,'a later entry wins');
+});
+test('a note keeps its spaces while it is being typed',()=>{
+ let entry={...base,kind:'Surgery',title:'Appendectomy',note:''};
+ for(const key of 's/p Laparoscopic ')entry=composeHistory({...entry,note:entry.note+key});
+ assert.equal(entry.note,'s/p Laparoscopic ');
+ assert.equal(entry.details,'s/p Laparoscopic','the displayed description is still tidy');
+});
+test('a dose keeps its unit, and a bare number is flagged rather than assumed',()=>{
+ assert.deepEqual(splitDose('50 mg'),{amount:'50',unit:'mg'});
+ assert.deepEqual(splitDose('5/160 mg'),{amount:'5/160',unit:'mg'});
+ assert.deepEqual(splitDose('1 tablet(s)'),{amount:'1',unit:'tablet(s)'});
+ assert.deepEqual(splitDose('1 tablet after breakfast'),{amount:'1 tablet after breakfast',unit:''},'older wording is kept whole');
+ assert.equal(joinDose('50','mg'),'50 mg');assert.equal(joinDose(' ','mg'),'');assert.equal(joinDose('50',''),'50');
+ assert.equal(doseNeedsUnit('50'),true);assert.equal(doseNeedsUnit('5/160'),true);assert.equal(doseNeedsUnit('50 mg'),false);assert.equal(doseNeedsUnit(''),false);assert.equal(doseNeedsUnit('half tablet'),false);
+});
+test('suggestions follow the record, and every short-list item exists in its full list',()=>{
+ assert.ok(suggestedMedicines(['Hypertension']).slice(0,2).includes('Amlodipine'));
+ assert.ok(suggestedMedicines(['Type 2 diabetes mellitus']).includes('Insulin'));
+ assert.ok(!suggestedMedicines([],'Male').includes('Prenatal vitamins'));
+ assert.ok(suggestedMedicines([],'Female').includes('Prenatal vitamins'));
+ const has=(groups,item)=>groups.some(g=>g.items.includes(item));
+ assert.ok(!forSex(medicineGroups,'Male').some(g=>g.group==='Women’s health'));
+ assert.ok(!has(forSex(conditionGroups,'Male'),'PCOS / PMOS (polycystic ovary syndrome)'));
+ assert.ok(!has(forSex(conditionGroups,'Female'),'Benign prostatic hyperplasia'));
+ assert.equal(forSex(conditionGroups,''),conditionGroups,'an unrecorded sex hides nothing');
+ assert.ok(has(forSex(medicineGroups,'Male'),'Metformin'),'shared medicines stay in their own group');
+ const lists={Condition:conditionGroups,Surgery:surgeryGroups,Hospitalization:hospitalizationGroups,'Family history':familyIllnessGroups};
+ for(const [kind,groups] of Object.entries(lists))for(const item of commonHistory[kind])assert.ok(has(groups,item),kind+': '+item);
+ for(const g of allergyGroups)for(const item of commonAllergies[g.group])assert.ok(g.items.includes(item),item);
+ for(const item of suggestedMedicines(['Hypertension','diabetes','cholesterol','stroke','heart failure','atrial fibrillation','asthma','thyroid','gout','kidney','GERD','epilepsy','depression','tuberculosis']))assert.ok(has(medicineGroups,item),item);
+});
+test('history reads as labelled facts, leaving out what is unknown',()=>{
+ assert.deepEqual(historyFacts({...base,kind:'Allergy',category:'Drug',reactions:'Rash; Hives',severity:'Unknown'}),[['Type','Drug'],['Reaction','Rash, Hives']]);
+ assert.deepEqual(historyFacts({...base,kind:'Condition',status:'Controlled',year:'2015'}),[['Status','Controlled'],['Since','2015']]);
+ assert.deepEqual(historyFacts({...base,kind:'Allergy'}),[]);
 });

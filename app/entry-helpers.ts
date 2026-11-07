@@ -35,10 +35,25 @@ export const historyNote=(h:HistoryItem)=>h.note??h.details;
  * so summaries, search and exports keep working from `title` and `details` alone.
  */
 export function composeHistory(h:HistoryItem):HistoryItem{
- const note=historyNote(h).trim();
+ // The note is kept exactly as typed: this runs on every keystroke, and trimming here would delete each space as it is entered.
+ const note=historyNote(h);
  const parts=h.kind==='Allergy'?[h.category&&h.category+' allergy',h.reactions&&'Reaction: '+h.reactions,h.severity&&h.severity!=='Unknown'&&'Severity: '+h.severity]
   :h.kind==='Condition'?[h.status&&'Status: '+h.status,h.year&&'Since '+h.year]
   :h.kind==='Family history'?[h.relative&&'Relative: '+h.relative]
   :[h.year&&'Year: '+h.year];
- return {...h,note,details:[...parts,note].filter(Boolean).join(' · ')};
+ return {...h,note,details:[...parts,note.trim()].filter(Boolean).join(' · ')};
+}
+
+const doseUnitsPattern=/^(.*\S)\s+(mg|mcg|g|mL|IU|units|tablet\(s\)|capsule\(s\)|puff\(s\)|drop\(s\)|sachet\(s\)|patch\(es\))$/;
+/** Splits a stored dose such as "50 mg". Anything written another way stays whole in the amount, so no wording is lost. */
+export function splitDose(value:string){const m=value.match(doseUnitsPattern);return m?{amount:m[1],unit:m[2]}:{amount:value,unit:''}}
+export const joinDose=(amount:string,unit:string)=>amount.trim()?(unit?amount.trim()+' '+unit:amount):'';
+/** True for a bare number such as "50" or "5/160": without a unit that dose is unsafe to read. */
+export const doseNeedsUnit=(dose:string)=>/^[\d.,/\s-]+$/.test(dose.trim())&&!!dose.trim();
+
+export const medicineTimes=['Morning','Noon','Evening','Bedtime','As needed'];
+/** The structured choices on an entry as label and value pairs, for reading rather than editing. */
+export function historyFacts(h:HistoryItem):[string,string][]{
+ const list=(v?:string)=>splitList(v).join(', ');
+ return ([['Type',h.category],['Reaction',list(h.reactions)],['Severity',h.severity==='Unknown'?'':h.severity],['Status',h.status],['Relatives',list(h.relative)],[h.kind==='Condition'?'Since':'Year',h.year]] as [string,string|undefined][]).filter((f):f is [string,string]=>!!f[1]);
 }
