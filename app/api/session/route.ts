@@ -15,7 +15,8 @@ export async function POST(request:Request){
   if(new URL(request.url).origin!==origin)return reply({error:'Please use the main Vessel website to sign in.'},403);
   // Not browser-bound: family members open email on phones and in mail apps, not in the browser that asked for the link.
   // The link lands on the Site URL with tokens in the URL fragment; the sign-in screen hands them to the "adopt" action below.
-  response=await supabaseRequest('/auth/v1/otp',undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,create_user:false})});
+  // Sends the link back to this site even if the Supabase Site URL points elsewhere (it must also be in the allowed redirect URLs).
+  response=await supabaseRequest('/auth/v1/otp?redirect_to='+encodeURIComponent(origin+'/'),undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,create_user:false})});
   if(response.status>=500)return reply({error:'Email delivery is temporarily unavailable. Please try again.'},503);
   if(response.status===429)return reply({error:'Too many attempts. Please wait before requesting another code.'},429);
   return reply({message:'If this email has been invited, a sign-in email will arrive shortly. Open the newest link on any device. If it contains a code instead, enter it below.'});
