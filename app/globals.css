@@ -240,3 +240,4 @@ body,h1,h2,h3,h4,.page-heading h1,.visit-banner h2,.vital-value strong,.record-h
 .activity-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.activity-list li{font-size:.875rem;line-height:1.4}.activity-list small{display:block;color:var(--vessel-muted);font-size:.75rem}
 .family-detail summary{gap:6px}
 @media(max-width:767px){.family-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.family-today>div{grid-template-columns:1fr;gap:2px}}
+.pilot-invites .invite-form{margin-top:10px}.invite-list{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px}.invite-list li{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid #ebe7f2;flex-wrap:wrap}.invite-list p{margin:2px 0;font-size:.875rem;color:var(--vessel-muted)}.invite-list small{font-size:.75rem;color:var(--vessel-muted)}

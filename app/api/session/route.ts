@@ -13,10 +13,11 @@ export async function POST(request:Request){
   if(typeof email!=='string'||email.length>254||!/^\S+@\S+\.\S+$/.test(email))return reply({error:'Enter a valid email address.'},400);
   const origin=appOrigin(setting('VESSEL_APP_URL'));
   if(new URL(request.url).origin!==origin)return reply({error:'Please use the main Vessel website to sign in.'},403);
+  // create_user is allowed because Supabase's "before user created" hook (vessel_before_user_created) refuses any email the family admin has not invited.
   // Not browser-bound: family members open email on phones and in mail apps, not in the browser that asked for the link.
   // The link lands on the Site URL with tokens in the URL fragment; the sign-in screen hands them to the "adopt" action below.
   // Sends the link back to this site even if the Supabase Site URL points elsewhere (it must also be in the allowed redirect URLs).
-  response=await supabaseRequest('/auth/v1/otp?redirect_to='+encodeURIComponent(origin+'/'),undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,create_user:false})});
+  response=await supabaseRequest('/auth/v1/otp?redirect_to='+encodeURIComponent(origin+'/'),undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,create_user:true})});
   if(response.status>=500)return reply({error:'Email delivery is temporarily unavailable. Please try again.'},503);
   if(response.status===429)return reply({error:'Too many attempts. Please wait before requesting another code.'},429);
   return reply({message:'If this email has been invited, a sign-in email will arrive shortly. Open the newest link on any device. If it contains a code instead, enter it below.'});
