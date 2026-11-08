@@ -209,3 +209,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media print{.legal-page{padding:0}.legal-page a{color:inherit}}
 .simple-view{display:flex;flex-direction:column}.simple-view .home-health{order:5}.simple-view .page-footer{order:9}
 .latest-vitals{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:8px 0 14px}.latest-vitals>div{padding:10px 12px;border:1px solid var(--vessel-border);border-radius:12px;background:#fff}.latest-vitals dt{font-size:.8125rem;color:var(--vessel-muted)}.latest-vitals dd{margin:2px 0 0}.latest-vitals strong{font-family:Georgia,serif;font-size:1.35rem;font-weight:400;color:var(--vessel-ink)}.latest-vitals small{display:block;font-size:.75rem;color:var(--vessel-muted)}
+
+/* Audit pass, 8 November 2026 */
+.summary-grid>button:first-child:not(.has-allergy){background:#f4f2f8}
+.care-note{display:block}.care-note summary{display:flex;gap:10px;align-items:center;cursor:pointer;list-style:none;min-height:32px}.care-note summary::-webkit-details-marker{display:none}.care-note summary::after{content:'What can I do?';margin-left:auto;font-size:.8125rem;text-decoration:underline;white-space:nowrap}.care-note[open] summary::after{content:'Hide'}.care-note p{margin:8px 0 0 28px}
+.family-detail summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--vessel-purple);font-weight:600}
+@media(max-width:767px){
+ .home-visit{display:grid;grid-template-columns:42px 1fr;gap:6px 14px;align-items:start}.home-visit>div{min-width:0}.home-visit .white-btn{grid-column:1/-1;justify-self:stretch;justify-content:center}
+ .record-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.record-tabs::-webkit-scrollbar{display:none}.record-tabs button{flex:0 0 auto}
+ .family-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.family-metrics .card{padding:12px 6px;gap:2px;text-align:center;justify-items:center}.family-metrics svg{display:none}.family-metrics strong{font-size:1.4rem}.family-metrics span{font-size:.75rem;line-height:1.25}
+}
+@media(max-width:767px){.record-row .record-date{display:grid;justify-items:end;gap:2px}.record-row .record-date small{display:block;white-space:nowrap}}
