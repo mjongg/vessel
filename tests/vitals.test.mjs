@@ -36,3 +36,12 @@ test('hospital locals dial after a pause, never glued onto the trunk line',()=>{
  assert.equal(dialLink('+63 2 8723 0101 L6521'),'tel:+63287230101,6521');
  assert.equal(dialLink('+63 956 639 9960'),'tel:+639566399960');
 });
+
+import {progress,shiftDay} from '../app/doses.ts';
+test('dose progress counts scheduled doses with any tick, and never counts "As needed" as due',()=>{
+ const due=[{id:'a',slot:'Morning'},{id:'a',slot:'Evening'},{id:'b',slot:'As needed'}];
+ const marks=[{medicineId:'a',day:'2026-11-08',slot:'Morning',status:'given',by:'x',at:''},{medicineId:'a',day:'2026-11-07',slot:'Evening',status:'given',by:'x',at:''}];
+ assert.deepEqual(progress(due,marks,'2026-11-08'),{done:1,total:2});
+ assert.equal(shiftDay('2026-03-01',-1),'2026-02-28');
+ assert.equal(shiftDay('2026-12-31',1),'2027-01-01');
+});

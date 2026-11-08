@@ -48,7 +48,8 @@ const state = {profiles: [
     records: [{id: 'own-doc', category: 'Laboratory', title: 'SECRET_MARKER', date: '', facility: '', notes: '', labs: [], reviewed: true, fileId: '20000000-0000-4000-8000-000000000002'}],
     history: [], medicines: [], readings: [], vaccines: []},
   {id: 'elder', name: 'Fictional Elder', dob: '1940-01-01', relationship: 'Parent', role: 'Managed', monitoring: true,
-    details: {preferredName: '', sex: '', bloodType: 'O+', phone: 'PRIVATE_PHONE', email: '', address: '', emergencyName: '', emergencyRelationship: '', emergencyPhone: '', allergyStatus: 'Listed', medicineStatus: 'Listed'},
+    details: {preferredName: '', sex: '', bloodType: 'O+', phone: 'PRIVATE_PHONE', email: '', address: '', emergencyName: 'Fictional Emergency', emergencyRelationship: 'Grandchild', emergencyPhone: '+63 900 000 0000', allergyStatus: 'Listed', medicineStatus: 'Listed'},
+    contacts: [{id: 'c1', name: 'Dr. Fictional', specialty: 'Nephrology', secretary: '', phone: '+63 2 0000 0000', address: '', hours: ''}],
     records: [{id: 'elder-doc', category: 'Laboratory', title: 'Fictional CBC', date: '2026-01-02', facility: '', notes: '', labs: [], reviewed: true, fileId: '20000000-0000-4000-8000-000000000001'}],
     history: [{id: 'h-allergy', kind: 'Allergy', title: 'Fictional allergen', details: '', date: '', facility: '', source: 'Patient reported'},
       {id: 'h-condition', kind: 'Condition', title: 'Fictional condition', details: '', date: '', facility: '', source: 'Patient reported'}],
@@ -129,7 +130,46 @@ test('a contributor sees readings, medicines and allergies only, with contact de
     assert.deepEqual(profile.vaccines, []);
     assert.equal(profile.details.bloodType, 'O+');
     assert.ok(!JSON.stringify(profile).includes('PRIVATE_PHONE'));
+    assert.equal(profile.contacts[0].name, 'Dr. Fictional', 'the nurse can call the doctors');
+    assert.equal(profile.details.emergencyName, 'Fictional Emergency');
   });
+});
+
+const today = new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10);
+const mark = (accessId, profile, medicine, day, slot, status) => call('select public.vessel_dose_mark($1,$2,$3,$4::date,$5,$6) r', [accessId, profile, medicine, day, slot, status]);
+const doses = (accessId, profile) => call('select public.vessel_dose_list($1,$2,$3::date,$4::date) r', [accessId, profile, today, today]);
+
+test('the owner and a nurse can tick off a dose, attributed by the server; a viewer can only read', async () => {
+  await as(OWNER, () => mark(null, 'elder', 'm1', today, 'Morning', 'given'));
+  await as(NURSE, () => mark(access[email(NURSE)], null, 'm1', today, 'Evening', 'skipped'));
+  await as(VIEWER, async () => {
+    await denied('42501', mark(access[email(VIEWER)], null, 'm1', today, 'Noon', 'given'));
+    const list = await doses(access[email(VIEWER)], null);
+    assert.deepEqual(list.map(d => [d.slot, d.status, d.by]), [['Evening', 'skipped', 'Fictional Nurse'], ['Morning', 'given', 'Admin']]);
+  });
+});
+
+test('dose marks stay inside one record: wrong medicine, other profiles, outsiders and old days are refused', async () => {
+  await as(OWNER, async () => {
+    await denied('22023', mark(null, 'elder', 'not-a-medicine', today, 'Morning', 'given'));
+    await denied('22023', mark(null, 'elder', 'm1', '2020-01-01', 'Morning', 'given'));
+    await denied('22023', mark(null, 'elder', 'm1', today, 'Lunchtime', 'given'));
+    await denied('42501', mark(null, 'someone-else', 'm1', today, 'Morning', 'given'));
+  });
+  await as(OUTSIDER, async () => {
+    await denied('42501', mark(access[email(NURSE)], null, 'm1', today, 'Morning', 'given'));
+    await denied('42501', doses(null, 'elder'));
+  });
+  await as(NURSE, () => denied('42501', mark(null, 'elder', 'm1', today, 'Morning', 'given')));
+});
+
+test('clearing a mark removes it, and nobody can read or write the dose table directly', async () => {
+  await as(OWNER, async () => {
+    await mark(null, 'elder', 'm1', today, 'Morning', null);
+    assert.deepEqual((await doses(null, 'elder')).map(d => d.slot), ['Evening']);
+  });
+  await as(NURSE, () => denied('42501', db.query('select * from public.vessel_dose_log')));
+  await as(null, () => denied('42501', doses(null, 'elder')));
 });
 
 test('a caregiver entry is attributed by the server and the owner’s stale save is rejected, not overwritten', async () => {

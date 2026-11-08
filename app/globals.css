@@ -220,3 +220,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .family-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.family-metrics .card{padding:12px 6px;gap:2px;text-align:center;justify-items:center}.family-metrics svg{display:none}.family-metrics strong{font-size:1.4rem}.family-metrics span{font-size:.75rem;line-height:1.25}
 }
 @media(max-width:767px){.record-row .record-date{display:grid;justify-items:end;gap:2px}.record-row .record-date small{display:block;white-space:nowrap}}
+/* Medicine tick-off */
+.dose-day{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px;margin:4px 0 14px;padding:10px;border:1px solid var(--vessel-border);border-radius:14px;background:#fff}.dose-day>div{text-align:center;display:grid}.dose-day strong{font-family:Georgia,serif;font-weight:400;font-size:1.15rem}.dose-day span{font-size:.8125rem;color:var(--vessel-muted)}.icon-only{min-width:44px;min-height:44px;padding:0;display:grid;place-items:center}
+.med-schedule .schedule-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #ebe7f2}.med-schedule .schedule-row.given .schedule-main strong{color:var(--vessel-muted)}
+.schedule-main{flex:1;min-width:0;display:grid;justify-items:start;text-align:left;background:none;border:0;padding:4px 0;color:inherit}.schedule-main small{color:var(--vessel-muted)}.tick-note{color:#3f6b4a!important;font-weight:600}.schedule-row.skipped .tick-note{color:#85445f!important}
+.dose-tick{flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:2px solid var(--vessel-purple);background:#fff;display:grid;place-items:center;color:#fff}.dose-tick[aria-pressed=true]{background:#3f6b4a;border-color:#3f6b4a}.schedule-row.skipped .dose-tick{border-color:#85445f;color:#85445f}.skip-btn{min-height:44px;font-size:.8125rem}.dose-footnote{margin-top:14px;font-size:.8125rem}
+
+/* Identity, 8 November 2026: serif headings and the bowl mark */
+:root{--font-serif:'Instrument Serif',Georgia,'Times New Roman',serif}
+.vessel-logo{display:inline-flex!important;align-items:center;gap:8px;width:auto!important;color:var(--vessel-ink,#24243b)}.vessel-logo .vessel-mark{width:34px;height:34px;flex:0 0 auto}.vessel-wordmark{font-family:var(--font-serif);font-size:2.1rem;line-height:1;letter-spacing:-.01em;font-weight:400}
+.page-heading h1,.card h2,.section-title h2,.record-hero h2,.visit-banner h2,.welcome-card h2,.signin-card h1,.account-intro h2,.health-dialog [data-slot=dialog-title],.profile-wizard header h2,.empty-state h3,.brand-intro h1,.legal-page h1,.family-card h2,.summary-paper h1{font-family:var(--font-serif)!important;font-weight:400!important;letter-spacing:-.01em!important}
+.page-heading h1{font-size:2.4rem}.section-title h2,.card h2{font-size:1.45rem}.health-dialog [data-slot=dialog-title]{font-size:1.7rem}
+@media(max-width:767px){.page-heading h1{font-size:2.15rem}.vessel-wordmark{font-size:1.9rem}.vessel-logo .vessel-mark{width:30px;height:30px}}
+.signin-brand .vessel-wordmark{font-size:2.6rem}.signin-brand .vessel-mark{width:42px;height:42px}
+.center-brand .vessel-wordmark,.signin-brand .vessel-wordmark{font-weight:400!important;letter-spacing:-.005em!important;font-size:2.15rem!important}.center-brand svg.vessel-mark{width:34px;height:34px}
+@media(max-width:767px){.center-brand .vessel-wordmark{font-size:1.95rem!important}.center-brand svg.vessel-mark{width:30px;height:30px}}
