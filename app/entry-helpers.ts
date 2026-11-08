@@ -82,3 +82,9 @@ export function vitalsToSave(v:{systolic:string;diastolic:string;pulse:string;te
  const bp=v.systolic.trim()||v.diastolic.trim()?v.systolic.trim()+'/'+v.diastolic.trim():'';
  return ([['Blood pressure',bp,'mmHg'],['Pulse',v.pulse.trim(),'bpm'],['Temperature',v.temperature.trim(),'°C'],['Oxygen saturation',v.oxygen.trim(),'%'],['Glucose',v.glucose.trim(),v.glucoseUnit]] as const).filter(([,value])=>value).map(([type,value,unit])=>({type,value,unit}));
 }
+
+/** A tel: link. A hospital local ("local 6519", "loc. 6519", "L6519") becomes a pause, so the phone dials the trunk line and then the local instead of one wrong long number. */
+export function dialLink(phone:string){
+ const[main,local]=phone.split(/\s*(?:local|loc\.?|ext\.?|\bL)\s*(?=\d)/i);
+ return 'tel:'+main.replace(/[^+\d]/g,'')+(local?','+local.replace(/\D/g,''):'');
+}

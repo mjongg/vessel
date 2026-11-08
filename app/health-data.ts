@@ -11,7 +11,7 @@ export type HistoryItem=Stamp&{id:string;kind:'Allergy'|'Condition'|'Surgery'|'H
  category?:string;reactions?:string;severity?:string;status?:string;year?:string;relative?:string;note?:string};
 export type Reading=Stamp&{id:string;type:'Blood pressure'|'Glucose'|'Temperature'|'Pulse'|'Oxygen saturation'|'Symptom';value:string;unit:string;date:string;note:string;author:string;corrections?:{at:string;value:string;unit:string;date:string;note:string;type:string;reason:string;author:string}[]};
 export type Vaccine=Stamp&{lotNumber?:string;fileId?:string;fileName?:string;id:string;name:string;date:string;dose:string;facility:string;due:string;notes:string};
-export type DoctorContact={id:string;name:string;specialty:string;secretary:string;phone:string;address:string;hours:string};
+export type DoctorContact={id:string;name:string;specialty:string;secretary:string;secretaryPhone?:string;phone:string;address:string;hours:string};
 export type ProfileDetails={preferredName:string;sex:string;bloodType:string;phone:string;email:string;address:string;emergencyName:string;emergencyRelationship:string;emergencyPhone:string;allergyStatus:"Unknown"|"None known"|"Listed";medicineStatus:"Unknown"|"None reported"|"Listed";
  // Optional. `noneReported` lists history kinds the person said they have none of ("Condition; Surgery"), so "none" stays distinct from "not asked".
  smoking?:string;alcohol?:string;occupation?:string;lmp?:string;noneReported?:string};

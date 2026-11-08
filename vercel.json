@@ -3,5 +3,8 @@
   "framework": "nextjs",
   "buildCommand": "npm run build:vercel",
   "installCommand": "npm ci",
-  "devCommand": "npm run dev:vercel"
+  "devCommand": "npm run dev:vercel",
+  "regions": [
+    "syd1"
+  ]
 }

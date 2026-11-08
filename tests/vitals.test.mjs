@@ -28,3 +28,11 @@ test('typing slips are caught and valid readings pass',()=>{
  assert.match(checkReading('Pulse','abc'),/positive number/);
  assert.equal(checkReading('Symptom','Headache'),'');
 });
+
+import {dialLink} from '../app/entry-helpers.ts';
+test('hospital locals dial after a pause, never glued onto the trunk line',()=>{
+ assert.equal(dialLink('+63 2 8723 0101 local 6519'),'tel:+63287230101,6519');
+ assert.equal(dialLink('+63 8-789-7700 loc 7310'),'tel:+63878977000,7310'.replace('878977000','87897700'));
+ assert.equal(dialLink('+63 2 8723 0101 L6521'),'tel:+63287230101,6521');
+ assert.equal(dialLink('+63 956 639 9960'),'tel:+639566399960');
+});

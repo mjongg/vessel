@@ -37,9 +37,9 @@ export function HistoryEntryFields({entry,onChange}:{entry:HistoryItem;onChange:
  </>;
 }
 
-/** An added entry: its own numbered block. A new entry opens ready to fill in; one that already has details starts folded. */
-function EntryCard({entry,onChange,onRemove}:{entry:HistoryItem;onChange:(entry:HistoryItem)=>void;onRemove:()=>void}){
- const[open,setOpen]=useState(!entry.details);
+/** An added entry: its own numbered block. A just-added entry opens ready to fill in (an allergy already has its type as a detail); a saved one starts folded. */
+function EntryCard({entry,fresh,onChange,onRemove}:{entry:HistoryItem;fresh:boolean;onChange:(entry:HistoryItem)=>void;onRemove:()=>void}){
+ const[open,setOpen]=useState(fresh||!entry.details);
  return <section className="entry-card"><div className="picked-head"><strong>{entry.title}</strong><button type="button" className="text-btn" onClick={onRemove}>Remove</button></div>
   <details className="entry-more" open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{open?'Hide details':entry.details||'Add details (optional)'}</summary><div className="entry-fields"><HistoryEntryFields entry={entry} onChange={onChange}/></div></details></section>;
 }
@@ -47,12 +47,14 @@ function EntryCard({entry,onChange,onRemove}:{entry:HistoryItem;onChange:(entry:
 /** One history section: a one-tap "none" answer, or open it to choose entries. Left alone, the answer stays unknown. */
 export function HistorySection({kind,entries,source,sex,none,onNone,onChange}:{kind:Kind;entries:HistoryItem[];source:string;sex?:string;none:boolean;onNone:(value:boolean)=>void;onChange:(entries:HistoryItem[])=>void}){
  const mine=entries.filter(h=>h.kind===kind);
+ const[fresh,setFresh]=useState<string[]>([]);
  const add=(group:string,title:string)=>{
   if(mine.some(h=>h.title.toLowerCase()===title.toLowerCase()))return;
-  onChange([...entries,composeHistory({id:crypto.randomUUID(),kind,title,details:'',date:'',facility:'',source,note:'',...(kind==='Allergy'?{category:group}:{})})]);
+  const id=crypto.randomUUID();setFresh(f=>[...f,id]);
+  onChange([...entries,composeHistory({id,kind,title,details:'',date:'',facility:'',source,note:'',...(kind==='Allergy'?{category:group}:{})})]);
  };
  const remove=(id:string)=>onChange(entries.filter(h=>h.id!==id));
- const card=(h:HistoryItem)=><EntryCard key={h.id} entry={h} onRemove={()=>remove(h.id)} onChange={next=>onChange(entries.map(x=>x.id===h.id?{...next,source}:x))}/>;
+ const card=(h:HistoryItem)=><EntryCard key={h.id} entry={h} fresh={fresh.includes(h.id)} onRemove={()=>remove(h.id)} onChange={next=>onChange(entries.map(x=>x.id===h.id?{...next,source}:x))}/>;
  const taken=(v:string)=>mine.some(h=>h.title===v);
  const screen=screens[kind];
  const groups=kind==='Family history'?historyGroups(kind):forSex(historyGroups(kind),sex);
