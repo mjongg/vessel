@@ -15,6 +15,7 @@ const input=z.discriminatedUnion('action',[
 ]);
 const failures:Record<string,[string,number]>={
  '42501':['You do not have permission for this change. Access may have been changed or removed.',403],
+ 'PT409':['This entry was changed by someone else. Reload the record, then make your change again.',409],
  '40001':['This entry was changed by someone else. Reload the record, then make your change again.',409],
 };
 

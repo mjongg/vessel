@@ -179,7 +179,7 @@ test('a caregiver entry is attributed by the server and the owner’s stale save
   assert.equal(out.entry.author, 'Fictional Carer');
   assert.equal(out.revision, 2);
   await as(OWNER, async () => {
-    await denied('40001', db.query('select public.vessel_save($1::jsonb,1)', [JSON.stringify(state)]));
+    await denied('PT409', db.query('select public.vessel_save($1::jsonb,1)', [JSON.stringify(state)]));
     const loaded = await call('select public.vessel_load() r');
     assert.equal(loaded.revision, 2);
     assert.deepEqual(loaded.state.profiles[1].readings.map(r => r.id), ['r-owner', 'r-carer']);
@@ -195,8 +195,8 @@ test('role limits hold on writes', async () => {
     const mine = (await write(id, 'readings', reading('r-nurse', '118/76'))).entry;
     const theirs = (await profiles())[0].profile.readings.find(r => r.id === 'r-carer');
     await denied('42501', write(id, 'readings', {...theirs, value: '1/1'}, theirs));
-    await denied('40001', write(id, 'readings', {...mine, value: '119/77'}, {...mine, value: 'stale'}));
-    await denied('40001', write(id, 'readings', {...mine, value: '119/77'}));
+    await denied('PT409', write(id, 'readings', {...mine, value: '119/77'}, {...mine, value: 'stale'}));
+    await denied('PT409', write(id, 'readings', {...mine, value: '119/77'}));
     const edited = (await write(id, 'readings', {...mine, value: '119/77'}, mine)).entry;
     assert.equal(edited.value, '119/77');
     assert.equal(edited.addedById, NURSE);
