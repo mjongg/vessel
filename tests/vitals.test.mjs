@@ -45,3 +45,14 @@ test('dose progress counts scheduled doses with any tick, and never counts "As n
  assert.equal(shiftDay('2026-03-01',-1),'2026-02-28');
  assert.equal(shiftDay('2026-12-31',1),'2027-01-01');
 });
+
+import {latestVitals,recentActivity} from '../app/activity.ts';
+test('the dashboard shows who did what, newest first, and the latest of each vital',()=>{
+ const p={id:'x',name:'Fictional',dob:'',relationship:'',role:'',monitoring:false,history:[],vaccines:[],
+  records:[{id:'d1',category:'Laboratory',title:'CBC',date:'',facility:'',notes:'',labs:[],reviewed:false,updatedAt:'2026-11-01T01:00:00Z'}],
+  medicines:[{id:'m1',name:'Losartan',dose:'50 mg',frequency:'',start:'',end:'',kind:'Maintenance',status:'Current',addedBy:'Day nurse',addedAt:'2026-11-03T01:00:00Z',editedBy:'Auntie',editedAt:'2026-11-04T01:00:00Z'}],
+  readings:[{id:'r1',type:'Blood pressure',value:'130/80',unit:'mmHg',date:'2026-11-02T01:00:00Z',note:'',author:'Account owner'},{id:'r2',type:'Blood pressure',value:'150/90',unit:'mmHg',date:'2026-11-05T01:00:00Z',note:'',author:'Day nurse',addedBy:'Day nurse',addedAt:'2026-11-05T01:00:00Z'},{id:'r3',type:'Pulse',value:'72',unit:'bpm',date:'2026-11-02T02:00:00Z',note:'',author:'Account owner'}]};
+ const a=recentActivity(p);
+ assert.deepEqual(a.map(x=>x.who+' '+x.what),['Day nurse added reading: Blood pressure 150/90 mmHg','Auntie corrected medicine: Losartan 50 mg','Day nurse added medicine: Losartan 50 mg','You logged Pulse 72 bpm','You logged Blood pressure 130/80 mmHg','You saved document: CBC']);
+ assert.deepEqual(latestVitals(p.readings).map(r=>r.value),['150/90','72']);
+});
